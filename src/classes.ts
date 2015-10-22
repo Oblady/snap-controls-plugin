@@ -2,7 +2,6 @@
 ///<reference path="plugin.d.ts" />
 ///<reference path="controls.ts" />
 
-
 class GroupPrototype {
 
     paper: Snap.Paper;
@@ -97,17 +96,34 @@ interface IControlInstance {
 class ControlsGroup extends GroupPrototype
 {
     controls: IControlInstance[] = [];
-
     constructor(paper: any, SnapGroup?: Snap.Element) {
         super(paper, 'elementControls', function() {}, SnapGroup);
 
-        var rect = this.group.rect(0,0,0,0);
-        rect.toggleClass("controlsBorder",true);
+
+        var rect = this.group.select('controlsBorder');
+        if(!rect) {
+            rect = this.group.paper.rect(0,0,0,0);
+            rect.toggleClass("controlsBorder",true);
+        } 
+        this.group.append(rect);
+    }
+
+    warmControls():void {
+
     }
 
     addControl(position: string, control: Control) {
         this.controls.push({position: position, control: control});
         return this;
+    }
+
+    setControlsVisibility(visibility: boolean) {
+        for (var i=0; i<this.controls.length; i++) {
+            this.controls[i].control.toggleVisibility(visibility);
+        }
+
+        var opacity = (visibility)?1:0;
+        this.group.attr({opacity: opacity});
     }
 }
 
@@ -140,13 +156,19 @@ class Container extends GroupPrototype
         return this;
     }
 
+
+    hideControls() {
+        this.controlsGroup.setControlsVisibility(false);
+    }
+
 	placeControls() {
 		var container = this;
-        var controls = container.controlsGroup.controls;
+        var controls = this.controlsGroup.controls;
         //var baseVal =  (this.node.transform.baseVal.length) ? this.node.transform.baseVal.getItem(0) : null;
 
 		var bbox = this.scalableGroup.group.getBBox();
 
+        container.controlsGroup.setControlsVisibility(true);
         var border = container.controlsGroup.group.select('.controlsBorder');
         border.attr({x: bbox.x, y: bbox.y, width: bbox.width, height: bbox.height});
 
@@ -184,7 +206,6 @@ class Container extends GroupPrototype
 
     constructor(paper: any, onSelection?: () => void, snapGroup?: Snap.Element) {
         super(paper, 'elementContainer', function() { Container.onMouseDown(this) }, snapGroup);
-        this.group.data('containerObject', this);
 
 		var self=this;
 		this.group.click(function() {

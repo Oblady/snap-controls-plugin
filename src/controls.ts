@@ -1,6 +1,6 @@
 ///<reference path="../typings/tsd.d.ts" />
 ///<reference path="plugin.d.ts" />
-///<reference path="canvas.ts" />
+/////<reference path="canvas.ts" />
 
 var ControlPositions = {
     tl:'tl',
@@ -15,9 +15,9 @@ interface IControl {
 
 class Control implements IControl {
 
+    visibility: boolean = false;
     linkedTo: Snap.Element;
     element: Snap.Element;
-    canvas: Canvas;
 
     onDragstart(x:number, y:number, event) {
         this.element.toggleClass('dragging', true);
@@ -58,15 +58,28 @@ class Control implements IControl {
     getDefaultElement(el:Snap.Element): Snap.Element {
         return el.rect(0, 0, 20, 20);
     }
+
+
+    toggleVisibility(force?: boolean) {
+        if('undefined' !== typeof force) {
+            this.visibility = force;
+        } else {
+            this.visibility != this.visibility;
+        }
+        var opacity = (this.visibility) ? 1 : 0;
+        this.element.attr({opacity: opacity});
+    }
+
     constructor (protected container:Container,  el:Snap.Element, handlerEl?: Snap.Element) {
 
         this.element = handlerEl || this.getDefaultElement(el);
         this.linkedTo = el;
 
+        this.element.attr({opacity:0});
+
         this.element.toggleClass('controlItem', true);
 
         var self = this;
-        this.canvas = new Canvas();
 
         if(!!this.linkedTo && !el.paper) {
             throw "Error: this.linkedTo.paper is undefined";
@@ -77,26 +90,13 @@ class Control implements IControl {
         this.element.drag(this.onDragmove, this.onDragstart, this.onDragend, this, this, this);
         this.element.angle = 0;
 
-
-
 		this.initialize();
-
-        /*
-        this.element.mousedown(function() {
-            self.linkedTo.undrag();
-        });
-        */
-        //this.element.mousemove(onMouseMove);
-        //this.element.mouseup(onMouseUp);
-        //var dragfunc = this.linkedTo.drag.clone();
     }
 }
 
 
 class ScaleControl extends Control {
-
 	scalableEl: Snap.Element;
-
     getDefaultElement(el:Snap.Element): Snap.Element {
         var item = el.rect(0, 0, 20, 20);
         item.toggleClass('scaleControl', true);
@@ -124,12 +124,12 @@ class ScaleControl extends Control {
         });
 
 		this.container.placeControls();
-        super.onDragmove();
+        super.onDragmove(dx, dy, x, y, event);
     }
 
-    onDragstart() {
+    onDragstart(x, y, event) {
         this.scalableEl.data('origTransform', this.scalableEl.transform().local);
-        super.onDragstart();
+        super.onDragstart(x, y, event);
     }
 
 
@@ -162,13 +162,13 @@ class RotationControl extends Control {
         el.attr({
                 transform: el.data('origTransform') + (el.data('origTransform') ? "R" : "r") + angle 
         });
-        super.onDragmove();
+        super.onDragmove(dx, dy, x, y, event);
     }
 
-    onDragstart() {
+    onDragstart(x, y, event) {
 		var el = this.rotatableEl;
         el.data('origTransform', el.transform().local);
-        super.onDragstart();
+        super.onDragstart(x, y, event);
     }
 }
 

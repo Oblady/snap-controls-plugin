@@ -37,6 +37,8 @@ declare module Snap {
         height: number;
         scaleX: number;
         scaleY: number;
+        rect(x:number, y:number, width: number, height:number);
+        circle(cx:number, cy:number, r:number);
 
         controllable ( onSelectionCallback: () => void ): Element;
         uncontrollable (): void;
