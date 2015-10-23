@@ -2,19 +2,22 @@
 ///<reference path="plugin.d.ts" />
 ///<reference path="controls.ts" />
 
+interface ControllableOptions {
+    onselect?(el: Snap.Element):void;
+    onunselect?(el: Snap.Element):void;
+    onchange?(el: Snap.Element):void;
+}
+
 class GroupPrototype {
 
     paper: Snap.Paper;
     group: Snap.Element;
-    onSelection: () => void;
 
-    init(paper: Snap.Paper, groupClass?: string, onSelection?: () => void, snapGroup?: Snap.Element):void {
+    init(paper: Snap.Paper, groupClass?: string, snapGroup?: Snap.Element):void {
         this.paper = paper;
         this.group = snapGroup || this.paper.group();
+		this.group.paper = paper;
         this.group.addClass(groupClass);
-        if(onSelection) {
-            this.group.mousedown(onSelection);
-        }
     }
 
     append(element):void {
@@ -25,8 +28,8 @@ class GroupPrototype {
         this.group.append(element.group);
     }
 
-    constructor(paper: Snap.Paper, groupClass: string, onSelection?: () => void, snapGroup?: Snap.Element) {
-        this.init(paper, groupClass, onSelection, snapGroup);
+    constructor(protected options: ControllableOptions, paper: Snap.Paper, groupClass: string, snapGroup?: Snap.Element) {
+        this.init(paper, groupClass, snapGroup);
     }
 };
 
@@ -37,8 +40,8 @@ class GroupPrototype {
  */
 class ScalableGroup extends GroupPrototype
 {
-    constructor(paper: any, SnapGroup?: Snap.Element) {
-        super(paper, 'elementScalable', function() {}, SnapGroup);
+    constructor(protected options: ControllableOptions, paper: Snap.Paper, SnapGroup?: Snap.Element) {
+        super(options, paper, 'elementScalable', SnapGroup);
 
         var altMoveDrag = function(xxdx: number, xxdy: number, ax: number, ay: number, ev) {
 
@@ -96,20 +99,28 @@ interface IControlInstance {
 class ControlsGroup extends GroupPrototype
 {
     controls: IControlInstance[] = [];
-    constructor(paper: any, SnapGroup?: Snap.Element) {
-        super(paper, 'elementControls', function() {}, SnapGroup);
+    constructor(protected options: ControllableOptions, paper: Snap.Paper, SnapGroup?: Snap.Element) {
+        super(options, paper, 'elementControls', SnapGroup);
+		this.drawBorder();
 
+    }
 
-        var rect = this.group.select('controlsBorder');
+	drawBorder() {
+        var rect = this.group.select('.controlsBorder');
         if(!rect) {
             rect = this.group.paper.rect(0,0,0,0);
             rect.toggleClass("controlsBorder",true);
+			this.group.append(rect);
         } 
-        this.group.append(rect);
-    }
+	}
 
-    warmControls():void {
-
+    cleanControls():void {
+		this.controls = [];
+		var els = this.group.selectAll('*');
+		for (var i=0; i<els.length; i++) {
+			els[i].remove();
+		}
+		this.drawBorder();
     }
 
     addControl(position: string, control: Control) {
@@ -130,7 +141,6 @@ class ControlsGroup extends GroupPrototype
 /**
  *
  * @param paper
- * @param onSelection
  * @param snapGroup
  * @constructor
  */
@@ -139,10 +149,6 @@ class Container extends GroupPrototype
     controlsGroup: ControlsGroup;
     scalableGroup: ScalableGroup;
 
-    static onMouseDown (el:Snap.Element) {
-        el.drawControls(50, 50);
-        //!!el.onSelection && el.onSelection();
-    }
 
     setScalableGroup(scalable: ScalableGroup):Container {
         this.scalableGroup = scalable;
@@ -158,10 +164,12 @@ class Container extends GroupPrototype
 
 
     hideControls() {
+        this.options.onunselect();
         this.controlsGroup.setControlsVisibility(false);
     }
 
 	placeControls() {
+console.log('placing controls');
 		var container = this;
         var controls = this.controlsGroup.controls;
         //var baseVal =  (this.node.transform.baseVal.length) ? this.node.transform.baseVal.getItem(0) : null;
@@ -202,13 +210,17 @@ class Container extends GroupPrototype
             }
 			control.setPosition(left, top);
         }
+
+
+        this.options.onselect(this.group);
 	}
 
-    constructor(paper: any, onSelection?: () => void, snapGroup?: Snap.Element) {
-        super(paper, 'elementContainer', function() { Container.onMouseDown(this) }, snapGroup);
+    constructor(protected options: ControllableOptions, paper: Snap.Paper, snapGroup?: Snap.Element) {
+        super(options, paper, 'elementContainer', snapGroup);
 
 		var self=this;
-		this.group.click(function() {
+		this.group.mousedown(function() {
+            self.options.onselect(this);
 			self.placeControls();	
 		});
     }

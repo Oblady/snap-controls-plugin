@@ -1,0 +1,32 @@
+{
+  "name": "snap-controls-plugin",
+  "version": "1.0.0",
+  "description": "Controls for snap svg",
+  "main": "snap.controls.js",
+  "directories": {
+    "test": "tests"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "tsd": "^0.6.5",
+    "typescript": "^1.6.2"
+  },
+  "scripts": {
+    "test": "karma start",
+    "run": ""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Oblady/snap-controls-plugin.git"
+  },
+  "keywords": [
+    "snap",
+    "svg"
+  ],
+  "author": "Oblady",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Oblady/snap-controls-plugin/issues"
+  },
+  "homepage": "https://github.com/Oblady/snap-controls-plugin#readme"
+}

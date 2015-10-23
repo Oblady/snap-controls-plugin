@@ -1,0 +1,10 @@
+{
+ "compilerOptions": {
+        "out": "dist/snap.controls.plugin.js",
+        "sourceMap": true
+		
+  },
+  "files": [
+	"src/snap.controls.plugin.ts"	
+  ]
+}

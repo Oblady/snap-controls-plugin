@@ -3,6 +3,7 @@
 ///<reference path="controls.ts" />
 ///<reference path="classes.ts" />
 
+
 /**
  * Plugin for Snap SVG.
  * Adds methods to the Element class to get anchor controls and coordinates of corners.
@@ -56,31 +57,36 @@ Snap.plugin(function (Snap, Element: Snap.Element, Paper: Snap.Paper, global) {
      * Adds the current element to the scalable group
      * Adds controls to the controls group
      */
-    Element.prototype.controllable = function(onSelection) {
+    Element.prototype.controllable = function(options?: ControllableOptions): Container {
         var container = null;
+        options = options || {};
+        options.onselect = options.onselect || function() {};
+        options.onunselect = options.onunselect || function() {};
+        options.onchange = options.onchange || function() {};
         
         if(this.hasClass('elementContainer')) {
+			console.log('reloading');
 
-            var scalable = new ScalableGroup(this.paper, Snap(this.node.children[0])),
-                controls = new ControlsGroup(this.paper, Snap(this.node.children[1]));
-            container = new Container(this.paper, onSelection, this);
+            var scalable = new ScalableGroup(options, this.paper, Snap(this.node.children[0])),
+                controls = new ControlsGroup(options, this.paper, Snap(this.node.children[1]));
+            container = new Container(options, this.paper, this);
             container.setScalableGroup(scalable);
             container.setControlsGroup(controls);
-            container.controlsGroup.warmControls();
+            container.controlsGroup.cleanControls();
         } else {
-            var scalable: ScalableGroup = new ScalableGroup(this.paper),
-                controls: ControlsGroup= new ControlsGroup(this.paper);
-            container = new Container(this.paper, onSelection);
+            var scalable: ScalableGroup = new ScalableGroup(options, this.paper),
+                controls: ControlsGroup= new ControlsGroup(options, this.paper);
+            container = new Container(options, this.paper);
             this.attr({'data-controllable':true});
 
             scalable.append(this);
             container.setScalableGroup(scalable);
             container.setControlsGroup(controls);
 
-            controls.addControl(ControlPositions.br, new ScaleControl(container, container.group) );
-            controls.addControl(ControlPositions.tl, new RotationControl(container, container.group) );
         }
 
+		controls.addControl(ControlPositions.br, new ScaleControl(container, container.group) );
+		controls.addControl(ControlPositions.tl, new RotationControl(container, container.group) );
         container.group.data('containerObject', container);
         controls.group.data('containerObject', container);
         scalable.group.data('containerObject', container);

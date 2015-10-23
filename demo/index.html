@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+    <link rel="stylesheet" href="http://yui.yahooapis.com/pure/0.6.0/base-min.css">
+    <style>
+        body {
+            padding:1em;
+        }
+
+        svg {
+            width:800px;
+            height:600px;
+            border:1px solid red;
+        }
+
+        svg .elementControls rect {
+            cursor:pointer;
+            stroke: red;
+        }
+
+        svg .elementControls .controlsBorder {
+			stroke: cyan;
+			fill: none;
+			stroke-dasharray: 5,5; 
+			stroke-width: 5;
+			animation: dash 120s linear;
+        }
+
+@keyframes dash {
+  to {
+    stroke-dashoffset: 1000;
+  }
+}
+    </style>
+</head>
+<body>
+    <h1>Snap Controls Plugin Demo</h1> 
+
+    <h3 id="unselectall" >unselect all</h3>
+    <svg id="demo">
+    
+    </svg>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/snap.svg/0.4.1/snap.svg-min.js" ></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/1.5.0/fabric.min.js"></script>
+    <script src="../dist/snap.controls.plugin.js" ></script>
+    <script src="./demo.js"></script>
+</body>
+</html>
