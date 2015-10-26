@@ -159,7 +159,7 @@ class RotationControl extends Control {
      */
     onDragmove(dx:number, dy:number, x:number, y:number, event) {
 		var el = this.rotatableEl;
-        var scale = 1;
+        var scale = Math.round(this.container.getControllableOptions().getZoomRatio());
         var p1 = this.element.getBBox();
         var p2 = {x: p1.x + dx * scale, y: p1.y + dy * scale};
         var angle = Math.atan2(p2.y - p1.y, p2.x - p1.x) * 180 / Math.PI;
