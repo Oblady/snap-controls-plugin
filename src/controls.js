@@ -59,6 +59,26 @@ var Control = (function () {
                 break;
         }
     };
+    Control.prototype.setWidth = function (w) {
+        switch (this.element.type) {
+            case 'circle':
+                this.element.attr({ r: w / 2 });
+                break;
+            default:
+                this.element.attr({ width: w });
+                break;
+        }
+    };
+    Control.prototype.setHeight = function (h) {
+        switch (this.element.type) {
+            case 'circle':
+                this.element.attr({ r: h / 2 });
+                break;
+            default:
+                this.element.attr({ height: h });
+                break;
+        }
+    };
     Control.prototype.initialize = function () {
         //do nothing by default
     };

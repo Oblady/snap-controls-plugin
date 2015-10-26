@@ -58,6 +58,26 @@ var Control = (function () {
                 break;
         }
     };
+    Control.prototype.setWidth = function (w) {
+        switch (this.element.type) {
+            case 'circle':
+                this.element.attr({ r: w / 2 });
+                break;
+            default:
+                this.element.attr({ width: w });
+                break;
+        }
+    };
+    Control.prototype.setHeight = function (h) {
+        switch (this.element.type) {
+            case 'circle':
+                this.element.attr({ r: h / 2 });
+                break;
+            default:
+                this.element.attr({ height: h });
+                break;
+        }
+    };
     Control.prototype.initialize = function () {
         //do nothing by default
     };
@@ -341,10 +361,12 @@ var Container = (function (_super) {
                     break;
                 case ControlPositions.mt:
                     left = bbox.x + bbox.width / 2;
-                    top = bbox.y - width;
+                    top = bbox.y - width - 50 / this.getControllableOptions().getZoomRatio(); //todo rendre l'offset configurable
                     break;
             }
             control.setPosition(left, top);
+            control.setWidth(50 / this.getControllableOptions().getZoomRatio()); //todo rendre la largeur configurable
+            control.setHeight(50 / this.getControllableOptions().getZoomRatio());
         }
         this.options.onselect(this.group);
     };

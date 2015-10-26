@@ -178,10 +178,12 @@ var Container = (function (_super) {
                     break;
                 case ControlPositions.mt:
                     left = bbox.x + bbox.width / 2;
-                    top = bbox.y - width;
+                    top = bbox.y - width - 50 / this.getControllableOptions().getZoomRatio(); //todo rendre l'offset configurable
                     break;
             }
             control.setPosition(left, top);
+            control.setWidth(50 / this.getControllableOptions().getZoomRatio()); //todo rendre la largeur configurable
+            control.setHeight(50 / this.getControllableOptions().getZoomRatio());
         }
         this.options.onselect(this.group);
     };

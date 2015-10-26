@@ -52,6 +52,30 @@ class Control implements IControl {
 		}
     }
 
+    setWidth(w) {
+        switch(this.element.type) {
+            case 'circle':
+                this.element.attr({r:w/2});
+                break;
+
+            default:
+                this.element.attr({width:w});
+                break;
+        }
+    }
+
+    setHeight(h) {
+        switch(this.element.type) {
+            case 'circle':
+                this.element.attr({r:h/2});
+                break;
+
+            default:
+                this.element.attr({height:h});
+                break;
+        }
+    }
+
 	initialize() {
 		//do nothing by default
 	}
