@@ -52,7 +52,7 @@ class Control implements IControl {
 		}
     }
 
-    setWidth(w) {
+    setWidth(w:number) {
         switch(this.element.type) {
             case 'circle':
                 this.element.attr({r:w/2});
@@ -64,7 +64,7 @@ class Control implements IControl {
         }
     }
 
-    setHeight(h) {
+    setHeight(h:number) {
         switch(this.element.type) {
             case 'circle':
                 this.element.attr({r:h/2});
@@ -89,7 +89,7 @@ class Control implements IControl {
         if('undefined' !== typeof force) {
             this.visibility = force;
         } else {
-            this.visibility != this.visibility;
+            this.visibility = !this.visibility;
         }
         var opacity = (this.visibility) ? 1 : 0;
         this.element.attr({opacity: opacity});

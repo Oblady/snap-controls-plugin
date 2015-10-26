@@ -90,7 +90,7 @@ var Control = (function () {
             this.visibility = force;
         }
         else {
-            this.visibility != this.visibility;
+            this.visibility = !this.visibility;
         }
         var opacity = (this.visibility) ? 1 : 0;
         this.element.attr({ opacity: opacity });
