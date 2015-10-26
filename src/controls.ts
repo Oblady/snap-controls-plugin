@@ -157,6 +157,8 @@ class RotationControl extends Control {
      * @param y
      */
     onDragmove(dx:number, dy:number, x:number, y:number, event) {
+
+        console.log('équipe de france', this.container.getControllableOptions().getZoomRatio());
 		var el = this.rotatableEl;
 		var angle = 1 + dx/2;
         el.attr({

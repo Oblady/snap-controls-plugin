@@ -6,6 +6,7 @@ interface ControllableOptions {
     onselect?(el: Snap.Element):void;
     onunselect?(el: Snap.Element):void;
     onchange?(el: Snap.Element):void;
+    getZoomRatio?(): number;
 }
 
 class GroupPrototype {
@@ -26,6 +27,11 @@ class GroupPrototype {
 
     appendGroup(element):void {
         this.group.append(element.group);
+    }
+
+
+    getControllableOptions(): ControllableOptions {
+        return this.options;
     }
 
     constructor(protected options: ControllableOptions, paper: Snap.Paper, groupClass: string, snapGroup?: Snap.Element) {
@@ -164,12 +170,11 @@ class Container extends GroupPrototype
 
 
     hideControls() {
-        this.options.onunselect();
+        this.options.onunselect(this.group);
         this.controlsGroup.setControlsVisibility(false);
     }
 
 	placeControls() {
-console.log('placing controls');
 		var container = this;
         var controls = this.controlsGroup.controls;
         //var baseVal =  (this.node.transform.baseVal.length) ? this.node.transform.baseVal.getItem(0) : null;

@@ -135,6 +135,7 @@ var RotationControl = (function (_super) {
      * @param y
      */
     RotationControl.prototype.onDragmove = function (dx, dy, x, y, event) {
+        console.log('équipe de france', this.container.getControllableOptions().getZoomRatio());
         var el = this.rotatableEl;
         var angle = 1 + dx / 2;
         el.attr({
@@ -182,6 +183,9 @@ var GroupPrototype = (function () {
     };
     GroupPrototype.prototype.appendGroup = function (element) {
         this.group.append(element.group);
+    };
+    GroupPrototype.prototype.getControllableOptions = function () {
+        return this.options;
     };
     return GroupPrototype;
 })();
@@ -297,11 +301,10 @@ var Container = (function (_super) {
         return this;
     };
     Container.prototype.hideControls = function () {
-        this.options.onunselect();
+        this.options.onunselect(this.group);
         this.controlsGroup.setControlsVisibility(false);
     };
     Container.prototype.placeControls = function () {
-        console.log('placing controls');
         var container = this;
         var controls = this.controlsGroup.controls;
         //var baseVal =  (this.node.transform.baseVal.length) ? this.node.transform.baseVal.getItem(0) : null;
@@ -400,8 +403,8 @@ Snap.plugin(function (Snap, Element, Paper, global) {
             options.onselect = options.onselect || function () { };
             options.onunselect = options.onunselect || function () { };
             options.onchange = options.onchange || function () { };
+            options.getZoomRatio = options.getZoomRatio || function () { console.log('default ratio'); return 1; };
             if (this.hasClass('elementContainer')) {
-                console.log('reloading');
                 var scalable = new ScalableGroup(options, this.paper, Snap(this.node.children[0])), controls = new ControlsGroup(options, this.paper, Snap(this.node.children[1]));
                 container = new Container(options, this.paper, this);
                 container.setScalableGroup(scalable);

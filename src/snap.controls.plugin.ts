@@ -63,10 +63,9 @@ Snap.plugin(function (Snap, Element: Snap.Element, Paper: Snap.Paper, global) {
         options.onselect = options.onselect || function() {};
         options.onunselect = options.onunselect || function() {};
         options.onchange = options.onchange || function() {};
+        options.getZoomRatio = options.getZoomRatio || function() {console.log('default ratio'); return 1;};
         
         if(this.hasClass('elementContainer')) {
-			console.log('reloading');
-
             var scalable = new ScalableGroup(options, this.paper, Snap(this.node.children[0])),
                 controls = new ControlsGroup(options, this.paper, Snap(this.node.children[1]));
             container = new Container(options, this.paper, this);
