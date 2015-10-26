@@ -10,7 +10,8 @@ var ControlPositions = {
     tl: 'tl',
     tr: 'tr',
     bl: 'bl',
-    br: 'br'
+    br: 'br',
+    mt: 'mt'
 };
 var Control = (function () {
     function Control(container, el, handlerEl) {
@@ -136,7 +137,12 @@ var RotationControl = (function (_super) {
      */
     RotationControl.prototype.onDragmove = function (dx, dy, x, y, event) {
         var el = this.rotatableEl;
-        var angle = 1 + dx / 2;
+        var scale = 1;
+        var p1 = this.element.getBBox();
+        var p2 = { x: p1.x + dx * scale, y: p1.y + dy * scale };
+        console.log(p1, p2);
+        var angle = Math.atan2(p2.y - p1.y, p2.x - p1.x) * 180 / Math.PI;
+        //var angle = 1 + dx/2;
         el.attr({
             transform: el.data('origTransform') + (el.data('origTransform') ? "R" : "r") + angle
         });
@@ -332,6 +338,10 @@ var Container = (function (_super) {
                     left = bbox.x + bbox.width;
                     top = bbox.y + bbox.height;
                     break;
+                case ControlPositions.mt:
+                    left = bbox.x + bbox.width / 2;
+                    top = bbox.y - width;
+                    break;
             }
             control.setPosition(left, top);
         }
@@ -417,7 +427,7 @@ Snap.plugin(function (Snap, Element, Paper, global) {
                 container.setControlsGroup(controls);
             }
             controls.addControl(ControlPositions.br, new ScaleControl(container, container.group));
-            controls.addControl(ControlPositions.tl, new RotationControl(container, container.group));
+            controls.addControl(ControlPositions.mt, new RotationControl(container, container.group));
             container.group.data('containerObject', container);
             controls.group.data('containerObject', container);
             scalable.group.data('containerObject', container);

@@ -86,7 +86,7 @@ Snap.plugin(function (Snap, Element: Snap.Element, Paper: Snap.Paper, global) {
         }
 
 		controls.addControl(ControlPositions.br, new ScaleControl(container, container.group) );
-		controls.addControl(ControlPositions.tl, new RotationControl(container, container.group) );
+		controls.addControl(ControlPositions.mt, new RotationControl(container, container.group) );
         container.group.data('containerObject', container);
         controls.group.data('containerObject', container);
         scalable.group.data('containerObject', container);

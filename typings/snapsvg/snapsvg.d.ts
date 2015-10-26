@@ -192,7 +192,7 @@ declare module Snap {
 		data(key:string,value?:any):any;
 		getAlign(el: Snap.Element, way: string): string;
 		getBBox():BBox;
-		getPointAtLength(length:number):{x:number, y:number, alpha:number};
+		getPointAtLength(length:number):{x:number; y:number; alpha:number};
 		getSubpath(from:number,to:number):string;
 		getTotalLength():number;
 		hasClass(value:string):boolean;
@@ -328,7 +328,7 @@ declare module Snap {
 
 	export interface Set {
 		animate(attrs:{[attr:string]:string|number|boolean|any},duration:number,easing?:(num:number)=>number,callback?:()=>void):Snap.Element;
-        animate(...params:Array<{attrs:any,duration:number,easing:(num:number)=>number,callback?:()=>void}>):Snap.Element;
+        animate(...params:Array<{attrs:any;duration:number;easing:(num:number)=>number;callback?:()=>void}>):Snap.Element;
 		attr(params: {[attr:string]:string|number|boolean|any}): Snap.Element;
         attr(param: string): string;
         bind(attr: string, callback: Function): Snap.Set;
@@ -380,13 +380,13 @@ declare module Snap {
 	}
 
 	interface IntersectionDot{
-		x:number,
-		y:number,
-		t1:number,
-		t2:number,
-		segment1:number,
-		segment2:number,
-		bez1:Array<number>,
+		x:number;
+		y:number;
+		t1:number;
+		t2:number;
+		segment1:number;
+		segment2:number;
+		bez1:Array<number>;
 		bez2:Array<number>
 	}
 }

@@ -72,14 +72,14 @@ class ScalableGroup extends GroupPrototype
             var diffX = mtx.e - initialMtx.e;
             var diffY =  initialMtx.f - mtx.f;
 
-        }
+        };
 
         var altStartDrag = function(x, y, ev) {
             var container = this.parent();
             container.data('ibb', container.getBBox());
             container.data('op', container.getCursorPoint(x, y));
             container.data('ot', container.transform().localMatrix);
-        }
+        };
 
         this.group.drag(altMoveDrag, altStartDrag, function() {});
     }
@@ -206,6 +206,10 @@ console.log('placing controls');
                 case ControlPositions.br:
                     left = bbox.x + bbox.width;
                     top = bbox.y + bbox.height;
+                    break;
+                case ControlPositions.mt:
+                    left = bbox.x + bbox.width/2;
+                    top = bbox.y - width;
                     break;
             }
 			control.setPosition(left, top);
