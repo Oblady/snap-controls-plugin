@@ -162,7 +162,6 @@ class RotationControl extends Control {
         var scale = 1;
         var p1 = this.element.getBBox();
         var p2 = {x: p1.x + dx * scale, y: p1.y + dy * scale};
-        console.log(p1, p2);
         var angle = Math.atan2(p2.y - p1.y, p2.x - p1.x) * 180 / Math.PI;
 		//var angle = 1 + dx/2;
         el.attr({
