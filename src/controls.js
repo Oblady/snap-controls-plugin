@@ -118,7 +118,7 @@ var ScaleControl = (function (_super) {
      * @param y
      */
     ScaleControl.prototype.onDragmove = function (dx, dy, x, y, event) {
-        var scale = 1 + dx / 100;
+        var scale = 1 + (dx + dy) / 100;
         if (scale < 0.2)
             scale = 0.2;
         if (scale > 10)
@@ -129,10 +129,12 @@ var ScaleControl = (function (_super) {
         });
         this.container.placeControls();
         _super.prototype.onDragmove.call(this, dx, dy, x, y, event);
+        this.container.getControllableOptions().onchange(null, null, null, null, scale);
     };
     ScaleControl.prototype.onDragstart = function (x, y, event) {
         this.scalableEl.data('origTransform', this.scalableEl.transform().local);
         _super.prototype.onDragstart.call(this, x, y, event);
+        this.container.getControllableOptions().ondragstart();
     };
     return ScaleControl;
 })(Control);
@@ -155,6 +157,7 @@ var RotationControl = (function (_super) {
      * @param dy y distance between the control and the mouse
      * @param x
      * @param y
+     * @param event
      */
     RotationControl.prototype.onDragmove = function (dx, dy, x, y, event) {
         var el = this.rotatableEl;
@@ -162,11 +165,12 @@ var RotationControl = (function (_super) {
         var p1 = this.element.getBBox();
         var p2 = { x: p1.x + dx * scale, y: p1.y + dy * scale };
         var angle = Math.atan2(p2.y - p1.y, p2.x - p1.x) * 180 / Math.PI;
-        //var angle = 1 + dx/2;
         el.attr({
-            transform: el.data('origTransform') + (el.data('origTransform') ? "R" : "r") + angle
+            transform: el.data('origTransform') + (el.data('origTransform') ? "R" : "r") + angle,
+            angle: angle
         });
         _super.prototype.onDragmove.call(this, dx, dy, x, y, event);
+        this.container.getControllableOptions().onchange(null, null, null, angle);
     };
     RotationControl.prototype.onDragstart = function (x, y, event) {
         var el = this.rotatableEl;

@@ -117,7 +117,7 @@ var ScaleControl = (function (_super) {
      * @param y
      */
     ScaleControl.prototype.onDragmove = function (dx, dy, x, y, event) {
-        var scale = 1 + dx / 100;
+        var scale = 1 + (dx + dy) / 100;
         if (scale < 0.2)
             scale = 0.2;
         if (scale > 10)
@@ -128,10 +128,12 @@ var ScaleControl = (function (_super) {
         });
         this.container.placeControls();
         _super.prototype.onDragmove.call(this, dx, dy, x, y, event);
+        this.container.getControllableOptions().onchange(null, null, null, null, scale);
     };
     ScaleControl.prototype.onDragstart = function (x, y, event) {
         this.scalableEl.data('origTransform', this.scalableEl.transform().local);
         _super.prototype.onDragstart.call(this, x, y, event);
+        this.container.getControllableOptions().ondragstart();
     };
     return ScaleControl;
 })(Control);
@@ -154,6 +156,7 @@ var RotationControl = (function (_super) {
      * @param dy y distance between the control and the mouse
      * @param x
      * @param y
+     * @param event
      */
     RotationControl.prototype.onDragmove = function (dx, dy, x, y, event) {
         var el = this.rotatableEl;
@@ -161,11 +164,12 @@ var RotationControl = (function (_super) {
         var p1 = this.element.getBBox();
         var p2 = { x: p1.x + dx * scale, y: p1.y + dy * scale };
         var angle = Math.atan2(p2.y - p1.y, p2.x - p1.x) * 180 / Math.PI;
-        //var angle = 1 + dx/2;
         el.attr({
-            transform: el.data('origTransform') + (el.data('origTransform') ? "R" : "r") + angle
+            transform: el.data('origTransform') + (el.data('origTransform') ? "R" : "r") + angle,
+            angle: angle
         });
         _super.prototype.onDragmove.call(this, dx, dy, x, y, event);
+        this.container.getControllableOptions().onchange(null, null, null, angle);
     };
     RotationControl.prototype.onDragstart = function (x, y, event) {
         var el = this.rotatableEl;
@@ -224,6 +228,7 @@ var ScalableGroup = (function (_super) {
     function ScalableGroup(options, paper, SnapGroup) {
         _super.call(this, options, paper, 'elementScalable', SnapGroup);
         this.options = options;
+        var self = this;
         var altMoveDrag = function (xxdx, xxdy, ax, ay, ev) {
             var container = this.parent();
             if (!container.paper) {
@@ -244,6 +249,7 @@ var ScalableGroup = (function (_super) {
             var mtx = container.transform().localMatrix.clone();
             var diffX = mtx.e - initialMtx.e;
             var diffY = initialMtx.f - mtx.f;
+            self.options.onchange(self.group, initialMtx, mtx);
         };
         var altStartDrag = function (x, y, ev) {
             var container = this.parent();
@@ -361,12 +367,12 @@ var Container = (function (_super) {
                     break;
                 case ControlPositions.mt:
                     left = bbox.x + bbox.width / 2;
-                    top = bbox.y - width - 50 / this.getControllableOptions().getZoomRatio(); //todo rendre l'offset configurable
+                    top = bbox.y - width - 100 / this.getControllableOptions().getZoomRatio(); //todo rendre l'offset configurable
                     break;
             }
             control.setPosition(left, top);
-            control.setWidth(50 / this.getControllableOptions().getZoomRatio()); //todo rendre la largeur configurable
-            control.setHeight(50 / this.getControllableOptions().getZoomRatio());
+            control.setWidth(100 / this.getControllableOptions().getZoomRatio()); //todo rendre la largeur configurable
+            control.setHeight(100 / this.getControllableOptions().getZoomRatio());
         }
         this.options.onselect(this.group);
     };
@@ -382,8 +388,7 @@ var Container = (function (_super) {
 /**
  * Plugin for Snap SVG.
  * Adds methods to the Element class to get anchor controls and coordinates of corners.
- * Adaptation of fabric.js (www.fabricjs.com) by Printio (Juriy Zaytsev, Maxim Chernyak) under the MIT Licence.
- * @author Thibaut Selingue <thibaut@oblady.fr>
+ * @author Oblady
  */
 Snap.plugin(function (Snap, Element, Paper, global) {
     Element.prototype.globalToLocal = function (globalPoint) {
@@ -402,12 +407,6 @@ Snap.plugin(function (Snap, Element, Paper, global) {
     };
     /**
      * Draws corners of an object's bounding box.
-     * Requires public properties: width, height, scaleX, scaleY
-     * @param width
-     * @param height
-     * @param {Object} options
-     * @return {fabric.Object} thisArg
-     * @chainable
      */
     Element.prototype.drawControls = function () {
         var container = this.data('containerObject');
@@ -433,6 +432,7 @@ Snap.plugin(function (Snap, Element, Paper, global) {
             options.onselect = options.onselect || function () { };
             options.onunselect = options.onunselect || function () { };
             options.onchange = options.onchange || function () { };
+            options.ondragstart = options.ondragstart || function () { };
             options.getZoomRatio = options.getZoomRatio || function () { console.log('default ratio'); return 1; };
             if (this.hasClass('elementContainer')) {
                 var scalable = new ScalableGroup(options, this.paper, Snap(this.node.children[0])), controls = new ControlsGroup(options, this.paper, Snap(this.node.children[1]));

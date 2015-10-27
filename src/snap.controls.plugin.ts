@@ -7,8 +7,7 @@
 /**
  * Plugin for Snap SVG.
  * Adds methods to the Element class to get anchor controls and coordinates of corners.
- * Adaptation of fabric.js (www.fabricjs.com) by Printio (Juriy Zaytsev, Maxim Chernyak) under the MIT Licence.
- * @author Thibaut Selingue <thibaut@oblady.fr>
+ * @author Oblady
  */
 Snap.plugin(function (Snap, Element: Snap.Element, Paper: Snap.Paper, global) {
 
@@ -30,12 +29,6 @@ Snap.plugin(function (Snap, Element: Snap.Element, Paper: Snap.Paper, global) {
 
     /**
      * Draws corners of an object's bounding box.
-     * Requires public properties: width, height, scaleX, scaleY
-     * @param width
-     * @param height
-     * @param {Object} options
-     * @return {fabric.Object} thisArg
-     * @chainable
      */
     Element.prototype.drawControls = function() {
         var container: Container  = this.data('containerObject');
@@ -63,6 +56,7 @@ Snap.plugin(function (Snap, Element: Snap.Element, Paper: Snap.Paper, global) {
         options.onselect = options.onselect || function() {};
         options.onunselect = options.onunselect || function() {};
         options.onchange = options.onchange || function() {};
+        options.ondragstart = options.ondragstart || function() {};
         options.getZoomRatio = options.getZoomRatio || function() {console.log('default ratio'); return 1;};
         
         if(this.hasClass('elementContainer')) {

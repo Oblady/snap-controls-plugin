@@ -5,7 +5,8 @@
 interface ControllableOptions {
     onselect?(el: Snap.Element):void;
     onunselect?(el: Snap.Element):void;
-    onchange?(el: Snap.Element):void;
+    onchange?(el: Snap.Element, initialMtx: Snap.Matrix, mtx: Snap.Matrix, angle: number, scale: number):void;
+    ondragstart?():void;
     getZoomRatio?(): number;
 }
 
@@ -48,7 +49,7 @@ class ScalableGroup extends GroupPrototype
 {
     constructor(protected options: ControllableOptions, paper: Snap.Paper, SnapGroup?: Snap.Element) {
         super(options, paper, 'elementScalable', SnapGroup);
-
+        var self = this;
         var altMoveDrag = function(xxdx: number, xxdy: number, ax: number, ay: number, ev) {
 
             var container: Snap.Element = this.parent();
@@ -77,6 +78,7 @@ class ScalableGroup extends GroupPrototype
             var mtx = container.transform().localMatrix.clone();
             var diffX = mtx.e - initialMtx.e;
             var diffY =  initialMtx.f - mtx.f;
+            self.options.onchange(self.group, initialMtx, mtx);
 
         };
 
@@ -214,12 +216,12 @@ class Container extends GroupPrototype
                     break;
                 case ControlPositions.mt:
                     left = bbox.x + bbox.width/2;
-                    top = bbox.y - width - 50 / this.getControllableOptions().getZoomRatio(); //todo rendre l'offset configurable
+                    top = bbox.y - width - 100 / this.getControllableOptions().getZoomRatio(); //todo rendre l'offset configurable
                     break;
             }
 			control.setPosition(left, top);
-            control.setWidth(50 / this.getControllableOptions().getZoomRatio()); //todo rendre la largeur configurable
-            control.setHeight(50 / this.getControllableOptions().getZoomRatio());
+            control.setWidth(100 / this.getControllableOptions().getZoomRatio()); //todo rendre la largeur configurable
+            control.setHeight(100 / this.getControllableOptions().getZoomRatio());
         }
 
 

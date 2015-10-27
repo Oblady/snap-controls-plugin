@@ -40,6 +40,7 @@ var ScalableGroup = (function (_super) {
     function ScalableGroup(options, paper, SnapGroup) {
         _super.call(this, options, paper, 'elementScalable', SnapGroup);
         this.options = options;
+        var self = this;
         var altMoveDrag = function (xxdx, xxdy, ax, ay, ev) {
             var container = this.parent();
             if (!container.paper) {
@@ -60,6 +61,7 @@ var ScalableGroup = (function (_super) {
             var mtx = container.transform().localMatrix.clone();
             var diffX = mtx.e - initialMtx.e;
             var diffY = initialMtx.f - mtx.f;
+            self.options.onchange(self.group, initialMtx, mtx);
         };
         var altStartDrag = function (x, y, ev) {
             var container = this.parent();
@@ -178,12 +180,12 @@ var Container = (function (_super) {
                     break;
                 case ControlPositions.mt:
                     left = bbox.x + bbox.width / 2;
-                    top = bbox.y - width - 50 / this.getControllableOptions().getZoomRatio(); //todo rendre l'offset configurable
+                    top = bbox.y - width - 100 / this.getControllableOptions().getZoomRatio(); //todo rendre l'offset configurable
                     break;
             }
             control.setPosition(left, top);
-            control.setWidth(50 / this.getControllableOptions().getZoomRatio()); //todo rendre la largeur configurable
-            control.setHeight(50 / this.getControllableOptions().getZoomRatio());
+            control.setWidth(100 / this.getControllableOptions().getZoomRatio()); //todo rendre la largeur configurable
+            control.setHeight(100 / this.getControllableOptions().getZoomRatio());
         }
         this.options.onselect(this.group);
     };

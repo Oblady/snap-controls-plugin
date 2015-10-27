@@ -140,7 +140,7 @@ class ScaleControl extends Control {
      * @param y
      */
     onDragmove(dx, dy, x, y, event) {
-		var scale = 1 + dx / 100;
+		var scale = 1 + (dx+dy) / 100;
 		if(scale < 0.2) scale = 0.2;
 		if(scale > 10) scale = 10;
 		var el = this.scalableEl;
@@ -150,11 +150,13 @@ class ScaleControl extends Control {
 
 		this.container.placeControls();
         super.onDragmove(dx, dy, x, y, event);
+        this.container.getControllableOptions().onchange(null, null, null, null, scale);
     }
 
     onDragstart(x, y, event) {
         this.scalableEl.data('origTransform', this.scalableEl.transform().local);
         super.onDragstart(x, y, event);
+        this.container.getControllableOptions().ondragstart();
     }
 
 
@@ -180,6 +182,7 @@ class RotationControl extends Control {
      * @param dy y distance between the control and the mouse
      * @param x
      * @param y
+     * @param event
      */
     onDragmove(dx:number, dy:number, x:number, y:number, event) {
 		var el = this.rotatableEl;
@@ -187,11 +190,12 @@ class RotationControl extends Control {
         var p1 = this.element.getBBox();
         var p2 = {x: p1.x + dx * scale, y: p1.y + dy * scale};
         var angle = Math.atan2(p2.y - p1.y, p2.x - p1.x) * 180 / Math.PI;
-		//var angle = 1 + dx/2;
         el.attr({
-                transform: el.data('origTransform') + (el.data('origTransform') ? "R" : "r") + angle
+                transform: el.data('origTransform') + (el.data('origTransform') ? "R" : "r") + angle,
+                angle: angle
         });
         super.onDragmove(dx, dy, x, y, event);
+        this.container.getControllableOptions().onchange(null, null, null, angle);
     }
 
     onDragstart(x, y, event) {
