@@ -201,6 +201,7 @@ class RotationControl extends Control {
     onDragstart(x, y, event) {
 		var el = this.rotatableEl;
         el.data('origTransform', el.transform().local);
+        this.container.getControllableOptions().ondragstart();
         super.onDragstart(x, y, event);
     }
 }

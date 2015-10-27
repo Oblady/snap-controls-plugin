@@ -174,6 +174,7 @@ var RotationControl = (function (_super) {
     RotationControl.prototype.onDragstart = function (x, y, event) {
         var el = this.rotatableEl;
         el.data('origTransform', el.transform().local);
+        this.container.getControllableOptions().ondragstart();
         _super.prototype.onDragstart.call(this, x, y, event);
     };
     return RotationControl;
