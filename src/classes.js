@@ -143,6 +143,12 @@ var Container = (function (_super) {
         this.appendGroup(controls);
         return this;
     };
+    Container.prototype.setOriginalGroup = function (originalGroup) {
+        this.originalGroup = originalGroup;
+    };
+    Container.prototype.getOriginalGroup = function () {
+        return this.originalGroup;
+    };
     Container.prototype.hideControls = function () {
         this.options.onunselect(this.group);
         this.controlsGroup.setControlsVisibility(false);

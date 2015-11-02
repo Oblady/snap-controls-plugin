@@ -54,6 +54,7 @@ Snap.plugin(function (Snap, Element, Paper, global) {
             container = new Container(options, this.paper, this);
             container.setScalableGroup(scalable);
             container.setControlsGroup(controls);
+            container.setOriginalGroup(Snap(scalable.group.node.children[0]));
             container.controlsGroup.cleanControls();
         }
         else {
@@ -63,6 +64,7 @@ Snap.plugin(function (Snap, Element, Paper, global) {
             scalable.append(this);
             container.setScalableGroup(scalable);
             container.setControlsGroup(controls);
+            container.setOriginalGroup(this);
         }
         controls.addControl(ControlPositions.br, new ScaleControl(container, container.group));
         controls.addControl(ControlPositions.mt, new RotationControl(container, container.group));

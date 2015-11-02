@@ -65,6 +65,7 @@ Snap.plugin(function (Snap, Element: Snap.Element, Paper: Snap.Paper, global) {
             container = new Container(options, this.paper, this);
             container.setScalableGroup(scalable);
             container.setControlsGroup(controls);
+            container.setOriginalGroup(Snap(scalable.group.node.children[0]));
             container.controlsGroup.cleanControls();
         } else {
             var scalable: ScalableGroup = new ScalableGroup(options, this.paper),
@@ -75,6 +76,7 @@ Snap.plugin(function (Snap, Element: Snap.Element, Paper: Snap.Paper, global) {
             scalable.append(this);
             container.setScalableGroup(scalable);
             container.setControlsGroup(controls);
+            container.setOriginalGroup(this);
 
         }
 

@@ -124,14 +124,14 @@ var ScaleControl = (function (_super) {
             scale = 10;
         var el = this.scalableEl;
         el.attr({
-            transform: el.data('origTransform') + (el.data('origTransform') ? "S" : "s") + scale
+            transform: el.data('origTransform').local + (el.data('origTransform').local ? "S" : "s") + scale
         });
         this.container.placeControls();
         _super.prototype.onDragmove.call(this, dx, dy, x, y, event);
         this.container.getControllableOptions().onchange(null, null, null, null, scale);
     };
     ScaleControl.prototype.onDragstart = function (x, y, event) {
-        this.scalableEl.data('origTransform', this.scalableEl.transform().local);
+        this.scalableEl.data('origTransform', this.scalableEl.transform());
         _super.prototype.onDragstart.call(this, x, y, event);
         this.container.getControllableOptions().ondragstart();
     };
@@ -161,11 +161,15 @@ var RotationControl = (function (_super) {
     RotationControl.prototype.onDragmove = function (dx, dy, x, y, event) {
         var el = this.rotatableEl;
         var scale = Math.round(this.container.getControllableOptions().getZoomRatio());
+        var scalableBBox = this.container.scalableGroup.group.getBBox();
         var p1 = this.element.getBBox();
         var p2 = { x: p1.x + dx * scale, y: p1.y + dy * scale };
         var angle = Math.atan2(p2.y - p1.y, p2.x - p1.x) * 180 / Math.PI;
+        var rotate = 'rotate(' + angle + ' ' + scalableBBox.cx + ' ' + scalableBBox.cy + ')';
+        var matrix = el.data('origTransform').localMatrix.rotate(-el.attr('angle'), scalableBBox.cx, scalableBBox.cy);
+        matrix.rotate(angle, scalableBBox.cx, scalableBBox.cy);
         el.attr({
-            transform: el.data('origTransform') + (el.data('origTransform') ? "R" : "r") + angle,
+            transform: matrix,
             angle: angle
         });
         _super.prototype.onDragmove.call(this, dx, dy, x, y, event);
@@ -173,7 +177,7 @@ var RotationControl = (function (_super) {
     };
     RotationControl.prototype.onDragstart = function (x, y, event) {
         var el = this.rotatableEl;
-        el.data('origTransform', el.transform().local);
+        el.data('origTransform', el.transform());
         this.container.getControllableOptions().ondragstart();
         _super.prototype.onDragstart.call(this, x, y, event);
     };
@@ -331,6 +335,12 @@ var Container = (function (_super) {
         this.appendGroup(controls);
         return this;
     };
+    Container.prototype.setOriginalGroup = function (originalGroup) {
+        this.originalGroup = originalGroup;
+    };
+    Container.prototype.getOriginalGroup = function () {
+        return this.originalGroup;
+    };
     Container.prototype.hideControls = function () {
         this.options.onunselect(this.group);
         this.controlsGroup.setControlsVisibility(false);
@@ -440,6 +450,7 @@ Snap.plugin(function (Snap, Element, Paper, global) {
                 container = new Container(options, this.paper, this);
                 container.setScalableGroup(scalable);
                 container.setControlsGroup(controls);
+                container.setOriginalGroup(Snap(scalable.group.node.children[0]));
                 container.controlsGroup.cleanControls();
             }
             else {
@@ -449,6 +460,7 @@ Snap.plugin(function (Snap, Element, Paper, global) {
                 scalable.append(this);
                 container.setScalableGroup(scalable);
                 container.setControlsGroup(controls);
+                container.setOriginalGroup(this);
             }
             controls.addControl(ControlPositions.br, new ScaleControl(container, container.group));
             controls.addControl(ControlPositions.mt, new RotationControl(container, container.group));

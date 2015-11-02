@@ -156,6 +156,7 @@ class Container extends GroupPrototype
 {
     controlsGroup: ControlsGroup;
     scalableGroup: ScalableGroup;
+    originalGroup: Element;
 
 
     setScalableGroup(scalable: ScalableGroup):Container {
@@ -168,6 +169,14 @@ class Container extends GroupPrototype
         this.controlsGroup = controls;
         this.appendGroup(controls);
         return this;
+    }
+
+    setOriginalGroup (originalGroup) {
+        this.originalGroup = originalGroup;
+    }
+
+    getOriginalGroup ():Element {
+        return this.originalGroup;
     }
 
 
