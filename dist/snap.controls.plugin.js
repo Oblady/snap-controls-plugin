@@ -378,12 +378,12 @@ var Container = (function (_super) {
                     break;
                 case ControlPositions.mt:
                     left = bbox.x + bbox.width / 2;
-                    top = bbox.y - width - 100 / this.getControllableOptions().getZoomRatio(); //todo rendre l'offset configurable
+                    top = bbox.y - width * 2 - this.getControllableOptions().getRotateControlOffset();
                     break;
             }
             control.setPosition(left, top);
-            control.setWidth(100 / this.getControllableOptions().getZoomRatio()); //todo rendre la largeur configurable
-            control.setHeight(100 / this.getControllableOptions().getZoomRatio());
+            control.setWidth(this.getControllableOptions().getControlWidth());
+            control.setHeight(this.getControllableOptions().getControlHeight());
         }
         this.options.onselect(this.group);
     };
@@ -439,12 +439,27 @@ Snap.plugin(function (Snap, Element, Paper, global) {
          */
         Element.prototype.controllable = function (options) {
             var container = null;
+            var self = this;
             options = options || {};
             options.onselect = options.onselect || function () { };
             options.onunselect = options.onunselect || function () { };
             options.onchange = options.onchange || function () { };
             options.ondragstart = options.ondragstart || function () { };
             options.getZoomRatio = options.getZoomRatio || function () { console.log('default ratio'); return 1; };
+            options.getRotateControl = options.getRotateControl || function () {
+                var item = self.paper.circle(0, 0, 10);
+                item.toggleClass('rotationControl', true);
+                return item;
+            };
+            options.getControlWidth = options.getControlWidth || function () {
+                return 50 / options.getZoomRatio() / 2;
+            };
+            options.getControlHeight = options.getControlHeight || function () {
+                return 50 / options.getZoomRatio() / 2;
+            };
+            options.getRotateControlOffset = options.getRotateControlOffset || function () {
+                return 50 / options.getZoomRatio() / 2;
+            };
             if (this.hasClass('elementContainer')) {
                 var scalable = new ScalableGroup(options, this.paper, Snap(this.node.children[0])), controls = new ControlsGroup(options, this.paper, Snap(this.node.children[1]));
                 container = new Container(options, this.paper, this);
@@ -463,7 +478,7 @@ Snap.plugin(function (Snap, Element, Paper, global) {
                 container.setOriginalGroup(this);
             }
             controls.addControl(ControlPositions.br, new ScaleControl(container, container.group));
-            controls.addControl(ControlPositions.mt, new RotationControl(container, container.group));
+            controls.addControl(ControlPositions.mt, new RotationControl(container, container.group, options.getRotateControl(controls.group)));
             container.group.data('containerObject', container);
             controls.group.data('containerObject', container);
             scalable.group.data('containerObject', container);

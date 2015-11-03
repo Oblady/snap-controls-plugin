@@ -8,6 +8,10 @@ interface ControllableOptions {
     onchange?(el: Snap.Element, initialMtx: Snap.Matrix, mtx: Snap.Matrix, angle: number, scale: number):void;
     ondragstart?():void;
     getZoomRatio?(): number;
+    getRotateControl?(el: Snap.Element):Snap.Element;
+    getControlWidth?() :number;
+    getControlHeight?() :number;
+    getRotateControlOffset?() :number;
 }
 
 class GroupPrototype {
@@ -225,12 +229,12 @@ class Container extends GroupPrototype
                     break;
                 case ControlPositions.mt:
                     left = bbox.x + bbox.width/2;
-                    top = bbox.y - width - 100 / this.getControllableOptions().getZoomRatio(); //todo rendre l'offset configurable
+                    top = bbox.y - width*2 - this.getControllableOptions().getRotateControlOffset();
                     break;
             }
 			control.setPosition(left, top);
-            control.setWidth(100 / this.getControllableOptions().getZoomRatio()); //todo rendre la largeur configurable
-            control.setHeight(100 / this.getControllableOptions().getZoomRatio());
+            control.setWidth(this.getControllableOptions().getControlWidth());
+            control.setHeight(this.getControllableOptions().getControlHeight());
         }
 
 

@@ -1,11 +1,10 @@
 ///<reference path="../typings/tsd.d.ts" />
 ///<reference path="plugin.d.ts" />
 ///<reference path="controls.ts" />
-var __extends = this.__extends || function (d, b) {
+var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
-    __.prototype = b.prototype;
-    d.prototype = new __();
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
 var GroupPrototype = (function () {
     function GroupPrototype(options, paper, groupClass, snapGroup) {
@@ -69,8 +68,7 @@ var ScalableGroup = (function (_super) {
             container.data('op', container.getCursorPoint(x, y));
             container.data('ot', container.transform().localMatrix);
         };
-        this.group.drag(altMoveDrag, altStartDrag, function () {
-        });
+        this.group.drag(altMoveDrag, altStartDrag, function () { });
     }
     return ScalableGroup;
 })(GroupPrototype);
@@ -186,12 +184,12 @@ var Container = (function (_super) {
                     break;
                 case ControlPositions.mt:
                     left = bbox.x + bbox.width / 2;
-                    top = bbox.y - width - 100 / this.getControllableOptions().getZoomRatio(); //todo rendre l'offset configurable
+                    top = bbox.y - width * 2 - this.getControllableOptions().getRotateControlOffset();
                     break;
             }
             control.setPosition(left, top);
-            control.setWidth(100 / this.getControllableOptions().getZoomRatio()); //todo rendre la largeur configurable
-            control.setHeight(100 / this.getControllableOptions().getZoomRatio());
+            control.setWidth(this.getControllableOptions().getControlWidth());
+            control.setHeight(this.getControllableOptions().getControlHeight());
         }
         this.options.onselect(this.group);
     };
