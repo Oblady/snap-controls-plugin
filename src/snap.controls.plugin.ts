@@ -79,7 +79,7 @@ Snap.plugin(function (Snap, Element: Snap.Element, Paper: Snap.Paper, global) {
                 return 20 / (options.getZoomRatio());
             };
         options.getRotateControlOffset = options.getRotateControlOffset || function() {
-                return 20 / options.getZoomRatio();
+                return options.getControlHeight();
             };
         if(this.hasClass('elementContainer')) {
             var scalable = new ScalableGroup(options, this.paper, Snap(this.node.children[0])),

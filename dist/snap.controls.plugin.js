@@ -398,7 +398,7 @@ var Container = (function (_super) {
             rotationControlOffset = this.getControllableOptions().getRotateControlOffset();
             middle = bbox.x + bbox.width / 2 - (control.element.type === 'circle' ? 0 : (control.getWidth() / 2));
             bottom = bbox.y + bbox.height + ((control.type === 'RotationControl') ? rotationControlOffset : 0);
-            top = bbox.y - ((control.type === 'RotationControl') ? rotationControlOffset : 0);
+            top = bbox.y - control.getHeight() - ((control.type === 'RotationControl') ? rotationControlOffset : 0);
             left = bbox.x;
             right = bbox.x + bbox.width;
             switch (pos) {
@@ -510,7 +510,7 @@ Snap.plugin(function (Snap, Element, Paper, global) {
                 return 20 / (options.getZoomRatio());
             };
             options.getRotateControlOffset = options.getRotateControlOffset || function () {
-                return 20 / options.getZoomRatio();
+                return options.getControlHeight();
             };
             if (this.hasClass('elementContainer')) {
                 var scalable = new ScalableGroup(options, this.paper, Snap(this.node.children[0])), controls = new ControlsGroup(options, this.paper, Snap(this.node.children[1]));
