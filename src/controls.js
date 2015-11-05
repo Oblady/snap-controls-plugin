@@ -1,6 +1,5 @@
 ///<reference path="../typings/tsd.d.ts" />
 ///<reference path="plugin.d.ts" />
-/////<reference path="canvas.ts" />
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
@@ -205,7 +204,7 @@ var RotationControl = (function (_super) {
             angle: angle
         });
         _super.prototype.onDragmove.call(this, dx, dy, x, y, event);
-        this.container.getControllableOptions().onchange(null, null, null, angle);
+        this.container.getControllableOptions().onchange(null, null, null, angle, null);
     };
     RotationControl.prototype.onDragstart = function (x, y, event) {
         var el = this.rotatableEl;

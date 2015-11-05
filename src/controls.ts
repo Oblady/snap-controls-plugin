@@ -1,6 +1,5 @@
 ///<reference path="../typings/tsd.d.ts" />
 ///<reference path="plugin.d.ts" />
-/////<reference path="canvas.ts" />
 
 var ControlPositions = {
     tl:'tl',
@@ -243,7 +242,7 @@ class RotationControl extends Control {
                 angle: angle
         });
         super.onDragmove(dx, dy, x, y, event);
-        this.container.getControllableOptions().onchange(null, null, null, angle);
+        this.container.getControllableOptions().onchange(null, null, null, angle, null);
     }
 
     onDragstart(x, y, event) {

@@ -91,8 +91,8 @@ Snap.plugin(function (Snap, Element, Paper, global) {
                 container.setControlsGroup(controls);
                 container.setOriginalGroup(this);
             }
-            controls.addControl(ControlPositions.br, new ScaleControl(container, container.group, options.getScaleControl(controls.group)));
-            controls.addControl(ControlPositions.mt, new RotationControl(container, container.group, options.getRotateControl(controls.group)));
+            controls.addControl(ControlPositions.br, new ScaleControl(container, container.group, options.getScaleControl()));
+            controls.addControl(ControlPositions.mt, new RotationControl(container, container.group, options.getRotateControl()));
             container.group.data('containerObject', container);
             controls.group.data('containerObject', container);
             scalable.group.data('containerObject', container);
@@ -107,8 +107,7 @@ Snap.plugin(function (Snap, Element, Paper, global) {
             //this._control.remove();
             //this._control = null;
         },
-        Snap.Point = fabric.Point;
-    Snap.Control = Control;
+        Snap.Control = Control;
     Snap.Container = Container;
 });
 //# sourceMappingURL=snap.controls.plugin.js.map

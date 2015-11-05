@@ -1,6 +1,5 @@
 ///<reference path="../typings/tsd.d.ts" />
 ///<reference path="plugin.d.ts" />
-/////<reference path="canvas.ts" />
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
@@ -205,7 +204,7 @@ var RotationControl = (function (_super) {
             angle: angle
         });
         _super.prototype.onDragmove.call(this, dx, dy, x, y, event);
-        this.container.getControllableOptions().onchange(null, null, null, angle);
+        this.container.getControllableOptions().onchange(null, null, null, angle, null);
     };
     RotationControl.prototype.onDragstart = function (x, y, event) {
         var el = this.rotatableEl;
@@ -232,6 +231,7 @@ var DragControl = (function (_super) {
 ///<reference path="../typings/tsd.d.ts" />
 ///<reference path="plugin.d.ts" />
 ///<reference path="controls.ts" />
+var Matrix = Snap.Matrix;
 var GroupPrototype = (function () {
     function GroupPrototype(options, paper, groupClass, snapGroup) {
         this.options = options;
@@ -271,7 +271,6 @@ var ScalableGroup = (function (_super) {
             if (!container.paper) {
                 return;
             }
-            var tdx, tdy;
             var cursorPoint = container.getCursorPoint(ax, ay);
             var pt = container.paper.node.createSVGPoint();
             pt.x = cursorPoint.x - container.data('op').x;
@@ -284,9 +283,7 @@ var ScalableGroup = (function (_super) {
             }
             container.transform(container.data('ot').toTransformString() + "t" + [localPt.x, localPt.y]);
             var mtx = container.transform().localMatrix.clone();
-            var diffX = mtx.e - initialMtx.e;
-            var diffY = initialMtx.f - mtx.f;
-            self.options.onchange(self.group, initialMtx, mtx);
+            self.getControllableOptions().onchange(self.group, initialMtx, mtx, null, null);
         };
         var altStartDrag = function (x, y, ev) {
             var container = this.parent();
@@ -529,8 +526,8 @@ Snap.plugin(function (Snap, Element, Paper, global) {
                 container.setControlsGroup(controls);
                 container.setOriginalGroup(this);
             }
-            controls.addControl(ControlPositions.br, new ScaleControl(container, container.group, options.getScaleControl(controls.group)));
-            controls.addControl(ControlPositions.mt, new RotationControl(container, container.group, options.getRotateControl(controls.group)));
+            controls.addControl(ControlPositions.br, new ScaleControl(container, container.group, options.getScaleControl()));
+            controls.addControl(ControlPositions.mt, new RotationControl(container, container.group, options.getRotateControl()));
             container.group.data('containerObject', container);
             controls.group.data('containerObject', container);
             scalable.group.data('containerObject', container);
@@ -545,8 +542,7 @@ Snap.plugin(function (Snap, Element, Paper, global) {
             //this._control.remove();
             //this._control = null;
         },
-        Snap.Point = fabric.Point;
-    Snap.Control = Control;
+        Snap.Control = Control;
     Snap.Container = Container;
 });
 //# sourceMappingURL=snap.controls.plugin.js.map

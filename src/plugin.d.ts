@@ -1,9 +1,5 @@
-
+///<reference path="classes.ts" />
 declare module Snap {
-
-    export interface IPoint extends fabric.IPoint
-    {
-    }
 
     export interface Paper {
         node: SVGSVGElement;
@@ -48,13 +44,9 @@ declare module Snap {
         isControlVisible(controlName: string): boolean;
         setControlVisible(controlName: string, visible: boolean): Element;
         setControlsVisibility(controls: Object): Element;
-        setPositionByOrigin(position: IPoint, originX: string, originY: string);
         getCoords(): ICoords;
         getCursorPoint(x: number, y:number): SVGPoint;
         globalToLocal(globalPoint: SVGPoint): SVGPoint;
-        translateToCenterPoint (point: IPoint, originX: string, originY: string): IPoint;
-        translateToOriginPoint (point: IPoint, originX: string, originY: string): IPoint;
-        getCenterPoint(): IPoint;
 
 
         _getControlsVisibility(): Object;

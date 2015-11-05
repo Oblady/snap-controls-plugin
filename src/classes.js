@@ -6,6 +6,7 @@ var __extends = (this && this.__extends) || function (d, b) {
     function __() { this.constructor = d; }
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
+var Matrix = Snap.Matrix;
 var GroupPrototype = (function () {
     function GroupPrototype(options, paper, groupClass, snapGroup) {
         this.options = options;
@@ -45,7 +46,6 @@ var ScalableGroup = (function (_super) {
             if (!container.paper) {
                 return;
             }
-            var tdx, tdy;
             var cursorPoint = container.getCursorPoint(ax, ay);
             var pt = container.paper.node.createSVGPoint();
             pt.x = cursorPoint.x - container.data('op').x;
@@ -58,9 +58,7 @@ var ScalableGroup = (function (_super) {
             }
             container.transform(container.data('ot').toTransformString() + "t" + [localPt.x, localPt.y]);
             var mtx = container.transform().localMatrix.clone();
-            var diffX = mtx.e - initialMtx.e;
-            var diffY = initialMtx.f - mtx.f;
-            self.options.onchange(self.group, initialMtx, mtx);
+            self.getControllableOptions().onchange(self.group, initialMtx, mtx, null, null);
         };
         var altStartDrag = function (x, y, ev) {
             var container = this.parent();

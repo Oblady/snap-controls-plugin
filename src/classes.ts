@@ -3,6 +3,7 @@
 ///<reference path="controls.ts" />
 
 import BBox = Snap.BBox;
+import Matrix = Snap.Matrix;
 interface ControllableOptions {
     onselect?(el: Snap.Element):void;
     onunselect?(el: Snap.Element):void;
@@ -56,7 +57,7 @@ class ScalableGroup extends GroupPrototype
 {
     constructor(protected options: ControllableOptions, paper: Snap.Paper, SnapGroup?: Snap.Element) {
         super(options, paper, 'elementScalable', SnapGroup);
-        var self = this;
+        var self: ScalableGroup = this;
         var altMoveDrag = function(xxdx: number, xxdy: number, ax: number, ay: number, ev) {
 
             var container: Snap.Element = this.parent();
@@ -65,32 +66,29 @@ class ScalableGroup extends GroupPrototype
                 return;
             }
 
-            var tdx: number, tdy: number;
             var cursorPoint:SVGPoint = container.getCursorPoint(ax, ay);
             var pt:SVGPoint = container.paper.node.createSVGPoint();
 
             pt.x = cursorPoint.x - container.data('op').x;
             pt.y = cursorPoint.y - container.data('op').y;
 
-            var localPt = container.globalToLocal(pt);
+            var localPt: SVGPoint = container.globalToLocal(pt);
 
-            var initialMtx = container.transform().localMatrix.clone();
+            var initialMtx: Snap.Matrix = container.transform().localMatrix.clone();
             if(container.type == 'svg') {
                 container.attr({'x': localPt.x});
                 container.attr({'y': localPt.y});
             }
             container.transform(container.data('ot').toTransformString() + "t" + [localPt.x, localPt.y]);
 
+            var mtx: Snap.Matrix = container.transform().localMatrix.clone();
 
-            var mtx = container.transform().localMatrix.clone();
-            var diffX = mtx.e - initialMtx.e;
-            var diffY =  initialMtx.f - mtx.f;
-            self.options.onchange(self.group, initialMtx, mtx);
+            self.getControllableOptions().onchange(self.group, initialMtx, mtx, null, null);
 
         };
 
         var altStartDrag = function(x, y, ev) {
-            var container = this.parent();
+            var container: Snap.Element = this.parent();
             container.data('ibb', container.getBBox());
             container.data('op', container.getCursorPoint(x, y));
             container.data('ot', container.transform().localMatrix);
