@@ -2,13 +2,16 @@
 ///<reference path="plugin.d.ts" />
 ///<reference path="controls.ts" />
 
+import BBox = Snap.BBox;
 interface ControllableOptions {
     onselect?(el: Snap.Element):void;
     onunselect?(el: Snap.Element):void;
     onchange?(el: Snap.Element, initialMtx: Snap.Matrix, mtx: Snap.Matrix, angle: number, scale: number):void;
     ondragstart?():void;
+    onzoom?():void;
     getZoomRatio?(): number;
-    getRotateControl?(el: Snap.Element):Snap.Element;
+    getRotateControl?():Snap.Element;
+    getScaleControl?():Snap.Element;
     getControlWidth?() :number;
     getControlHeight?() :number;
     getRotateControlOffset?() :number;
@@ -189,55 +192,80 @@ class Container extends GroupPrototype
         this.controlsGroup.setControlsVisibility(false);
     }
 
+    /**
+     * Sets the controls position and size
+     */
 	placeControls() {
-		var container = this;
-        var controls = this.controlsGroup.controls;
-        //var baseVal =  (this.node.transform.baseVal.length) ? this.node.transform.baseVal.getItem(0) : null;
+        var x: number,
+            y: number,
+            rotationControlOffset: number,
+            middle: number,
+            bottom: number,
+            top: number,
+            left: number,
+            right: number,
+            pos: string,
+            control: Control,
+            container: Container,
+            controls: IControlInstance[],
+            border: Snap.Element,
+            bbox: BBox;
 
-		var bbox = this.scalableGroup.group.getBBox();
+		container = this;
+        controls = this.controlsGroup.controls;
+        bbox = this.scalableGroup.group.getBBox();
 
         container.controlsGroup.setControlsVisibility(true);
-        var border = container.controlsGroup.group.select('.controlsBorder');
+        border = container.controlsGroup.group.select('.controlsBorder');
         border.attr({x: bbox.x, y: bbox.y, width: bbox.width, height: bbox.height});
 
         for(var i=0; i<controls.length; i++) {
-            var pos: string = controls[i].position;
-            var control: Control = controls[i].control;
+            pos = controls[i].position;
+            control = controls[i].control;
 
-            var left: number;
-            var top: number;
-			var width = 10;
+            control.setWidth(this.getControllableOptions().getControlWidth());
+            control.setHeight(this.getControllableOptions().getControlHeight());
+
+            x = 0;
+            y = 0;
+            rotationControlOffset = this.getControllableOptions().getRotateControlOffset();
+            middle = bbox.x + bbox.width/2 - (control.element.type === 'circle' ? 0 : (control.getWidth()/2));
+            bottom = bbox.y + bbox.height + ((control.type === 'RotationControl') ? rotationControlOffset : 0);
+            top = bbox.y - ((control.type === 'RotationControl') ? rotationControlOffset : 0);
+            left = bbox.x;
+            right = bbox.x + bbox.width;
+
             switch(pos) {
                 case ControlPositions.tl:
-                    left = bbox.x - width;
-                    top = bbox.y - width;
+                    x = left;
+                    y = top;
                     break;
 
                 case ControlPositions.tr:
-                    left = bbox.x + bbox.width;
-                    top = bbox.y;
+                    x = right;
+                    y = top;
                     break;
 
                 case ControlPositions.bl:
-                    left = bbox.x;
-                    top = bbox.y + bbox.height;
+                    x = left;
+                    y = bottom;
                     break;
 
                 case ControlPositions.br:
-                    left = bbox.x + bbox.width;
-                    top = bbox.y + bbox.height;
+                    x = right;
+                    y = bottom;
                     break;
                 case ControlPositions.mt:
-                    left = bbox.x + bbox.width/2;
-                    top = bbox.y - width*2 - this.getControllableOptions().getRotateControlOffset();
+                    x = middle;
+                    y = top;
+                    break;
+                case ControlPositions.mb:
+                    x = middle;
+                    y = bottom;
                     break;
             }
-			control.setPosition(left, top);
-            control.setWidth(this.getControllableOptions().getControlWidth());
-            control.setHeight(this.getControllableOptions().getControlHeight());
+            control.setPosition(x, y);
         }
-
-
         this.options.onselect(this.group);
 	}
 

@@ -11,11 +11,13 @@ var ControlPositions = {
     tr: 'tr',
     bl: 'bl',
     br: 'br',
-    mt: 'mt'
+    mt: 'mt',
+    mb: 'mb'
 };
 var Control = (function () {
     function Control(container, el, handlerEl) {
         this.container = container;
+        this.type = 'Control';
         this.visibility = false;
         this.element = handlerEl || this.getDefaultElement(el);
         this.linkedTo = el;
@@ -48,10 +50,20 @@ var Control = (function () {
         event.preventDefault();
         // console.log('on drag down', this);
     };
+    /**
+     * set position relative to parent
+     * @param x
+     * @param y
+     */
     Control.prototype.setPosition = function (x, y) {
         switch (this.element.type) {
             case 'circle':
                 this.element.attr({ cx: x, cy: y });
+                break;
+            case 'g':
+                var localmatrix = this.element.transform().localMatrix, invert = localmatrix.invert(), absX = x / localmatrix.a, absY = y / localmatrix.d;
+                //cancel the previous translation then do the new one
+                this.element.attr({ transform: localmatrix.translate(invert.e, invert.f).translate(absX, absY) });
                 break;
             default:
                 this.element.attr({ x: x, y: y });
@@ -63,6 +75,12 @@ var Control = (function () {
             case 'circle':
                 this.element.attr({ r: w / 2 });
                 break;
+            case 'g':
+                var bbox = this.element.getBBox(), width = bbox.width, scaleX = this.element.transform().localMatrix.a, absWidth = width / scaleX, newScaleX = w / absWidth;
+                this.element.attr({
+                    transform: this.element.transform().localMatrix.scale(1 / scaleX, 1).scale(newScaleX, 1)
+                });
+                break;
             default:
                 this.element.attr({ width: w });
                 break;
@@ -73,10 +91,22 @@ var Control = (function () {
             case 'circle':
                 this.element.attr({ r: h / 2 });
                 break;
+            case 'g':
+                var bbox = this.element.getBBox(), height = bbox.height, scaleY = this.element.transform().localMatrix.d, absHeight = height / scaleY, newScaleY = h / absHeight;
+                this.element.attr({
+                    transform: this.element.transform().localMatrix.scale(1, 1 / scaleY).scale(1, newScaleY)
+                });
+                break;
             default:
                 this.element.attr({ height: h });
                 break;
         }
+    };
+    Control.prototype.getWidth = function () {
+        return this.element.getBBox().width;
+    };
+    Control.prototype.getHeight = function () {
+        return this.element.getBBox().height;
     };
     Control.prototype.initialize = function () {
         //do nothing by default
@@ -100,6 +130,7 @@ var ScaleControl = (function (_super) {
     __extends(ScaleControl, _super);
     function ScaleControl() {
         _super.apply(this, arguments);
+        this.type = 'ScaleControl';
     }
     ScaleControl.prototype.getDefaultElement = function (el) {
         var item = el.rect(0, 0, 20, 20);
@@ -141,6 +172,7 @@ var RotationControl = (function (_super) {
     __extends(RotationControl, _super);
     function RotationControl() {
         _super.apply(this, arguments);
+        this.type = 'RotationControl';
     }
     RotationControl.prototype.getDefaultElement = function (el) {
         var item = el.circle(0, 0, 10);
@@ -160,7 +192,7 @@ var RotationControl = (function (_super) {
      */
     RotationControl.prototype.onDragmove = function (dx, dy, x, y, event) {
         var el = this.rotatableEl;
-        var scale = Math.round(this.container.getControllableOptions().getZoomRatio());
+        var scale = Math.round(this.container.getControllableOptions().getZoomRatio() * 100) / 100;
         var scalableBBox = this.container.scalableGroup.group.getBBox();
         var p1 = this.element.getBBox();
         var p2 = { x: p1.x + dx * scale, y: p1.y + dy * scale };

@@ -7,7 +7,8 @@ var ControlPositions = {
     tr:'tr',
     bl:'bl',
     br:'br',
-    mt:'mt'
+    mt:'mt',
+    mb:'mb'
 };
 
 interface IControl {
@@ -16,6 +17,7 @@ interface IControl {
 
 class Control implements IControl {
 
+    type: string = 'Control';
     visibility: boolean = false;
     linkedTo: Snap.Element;
     element: Snap.Element;
@@ -40,11 +42,26 @@ class Control implements IControl {
        // console.log('on drag down', this);
     }
 
+    /**
+     * set position relative to parent
+     * @param x
+     * @param y
+     */
     setPosition(x, y)  {
 		switch(this.element.type) {
 			case 'circle':
 				this.element.attr({cx:x, cy:y});
 			break;
+
+            case 'g':
+                var localmatrix = this.element.transform().localMatrix,
+                    invert = localmatrix.invert(),
+                    absX = x/localmatrix.a,
+                    absY = y/localmatrix.d;
+
+                //cancel the previous translation then do the new one
+                this.element.attr({transform: localmatrix.translate(invert.e, invert.f).translate(absX, absY)});
+            break;
 
 			default:
 				this.element.attr({x:x, y:y});
@@ -56,6 +73,14 @@ class Control implements IControl {
         switch(this.element.type) {
             case 'circle':
                 this.element.attr({r:w/2});
+                break;
+            case 'g':
+                var bbox = this.element.getBBox(), width = bbox.width,
+                    scaleX = this.element.transform().localMatrix.a,
+                    absWidth = width / scaleX, newScaleX = w/absWidth;
+                this.element.attr({
+                    transform: this.element.transform().localMatrix.scale(1/scaleX, 1).scale(newScaleX,1)
+                });
                 break;
 
             default:
@@ -70,10 +95,27 @@ class Control implements IControl {
                 this.element.attr({r:h/2});
                 break;
 
+            case 'g':
+                var bbox = this.element.getBBox(), height = bbox.height,
+                    scaleY = this.element.transform().localMatrix.d,
+                    absHeight = height / scaleY, newScaleY = h/absHeight;
+                this.element.attr({
+                    transform: this.element.transform().localMatrix.scale(1, 1/scaleY).scale(1, newScaleY)
+                });
+                break;
+
             default:
                 this.element.attr({height:h});
                 break;
         }
+    }
+
+    getWidth() :number {
+        return this.element.getBBox().width;
+    }
+
+    getHeight() :number {
+        return this.element.getBBox().height;
     }
 
 	initialize() {
@@ -121,6 +163,7 @@ class Control implements IControl {
 
 
 class ScaleControl extends Control {
+    type: string = 'ScaleControl';
 	scalableEl: Snap.Element;
     getDefaultElement(el:Snap.Element): Snap.Element {
         var item = el.rect(0, 0, 20, 20);
@@ -164,6 +207,7 @@ class ScaleControl extends Control {
 
 class RotationControl extends Control {
 
+    type: string = 'RotationControl';
 	rotatableEl: Snap.Element;
 
     getDefaultElement(el:Snap.Element): Snap.Element {
@@ -186,7 +230,7 @@ class RotationControl extends Control {
      */
     onDragmove(dx:number, dy:number, x:number, y:number, event) {
 		var el = this.rotatableEl;
-        var scale = Math.round(this.container.getControllableOptions().getZoomRatio());
+        var scale = Math.round(this.container.getControllableOptions().getZoomRatio()*100)/100;
         var scalableBBox = this.container.scalableGroup.group.getBBox();
         var p1 = this.element.getBBox();
         var p2 = {x: p1.x + dx * scale, y: p1.y + dy * scale};

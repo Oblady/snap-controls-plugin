@@ -58,20 +58,28 @@ Snap.plugin(function (Snap, Element: Snap.Element, Paper: Snap.Paper, global) {
         options.onunselect = options.onunselect || function() {};
         options.onchange = options.onchange || function() {};
         options.ondragstart = options.ondragstart || function() {};
-        options.getZoomRatio = options.getZoomRatio || function() {console.log('default ratio'); return 1;};
+        options.onzoom = options.onzoom || function() {
+                //TODO: call placeControls() for each container
+            };
+        options.getZoomRatio = options.getZoomRatio || function() {return 1;};
         options.getRotateControl = options.getRotateControl || function() {
                 var item = self.paper.circle(0, 0, 10);
                 item.toggleClass('rotationControl', true);
                 return item;
             };
+        options.getScaleControl = options.getScaleControl || function() {
+                var item = self.paper.rect(0, 0, 10);
+                item.toggleClass('scaleControl', true);
+                return item;
+            };
         options.getControlWidth = options.getControlWidth || function() {
-                return 50 / options.getZoomRatio() / 2;
+                return 20 / (options.getZoomRatio());
             };
         options.getControlHeight = options.getControlHeight || function()  {
-                return 50 / options.getZoomRatio() / 2;
+                return 20 / (options.getZoomRatio());
             };
         options.getRotateControlOffset = options.getRotateControlOffset || function() {
-                return 50 / options.getZoomRatio() / 2;
+                return 20 / options.getZoomRatio();
             };
         if(this.hasClass('elementContainer')) {
             var scalable = new ScalableGroup(options, this.paper, Snap(this.node.children[0])),
@@ -94,8 +102,8 @@ Snap.plugin(function (Snap, Element: Snap.Element, Paper: Snap.Paper, global) {
 
         }
 
-		controls.addControl(ControlPositions.br, new ScaleControl(container, container.group) );
-		controls.addControl(ControlPositions.mt, new RotationControl(container, container.group, options.getRotateControl(controls.group)) );
+		controls.addControl(ControlPositions.br, new ScaleControl(container, container.group, options.getScaleControl(controls.group)));
+		controls.addControl(ControlPositions.mt, new RotationControl(container, container.group, options.getRotateControl(controls.group)));
         container.group.data('containerObject', container);
         controls.group.data('containerObject', container);
         scalable.group.data('containerObject', container);

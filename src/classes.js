@@ -151,45 +151,57 @@ var Container = (function (_super) {
         this.options.onunselect(this.group);
         this.controlsGroup.setControlsVisibility(false);
     };
+    /**
+     * Sets the controls position and size
+     */
     Container.prototype.placeControls = function () {
-        var container = this;
-        var controls = this.controlsGroup.controls;
-        //var baseVal =  (this.node.transform.baseVal.length) ? this.node.transform.baseVal.getItem(0) : null;
-        var bbox = this.scalableGroup.group.getBBox();
+        var x, y, rotationControlOffset, middle, bottom, top, left, right, pos, control, container, controls, border, bbox;
+        container = this;
+        controls = this.controlsGroup.controls;
+        bbox = this.scalableGroup.group.getBBox();
         container.controlsGroup.setControlsVisibility(true);
-        var border = container.controlsGroup.group.select('.controlsBorder');
+        border = container.controlsGroup.group.select('.controlsBorder');
         border.attr({ x: bbox.x, y: bbox.y, width: bbox.width, height: bbox.height });
         for (var i = 0; i < controls.length; i++) {
-            var pos = controls[i].position;
-            var control = controls[i].control;
-            var left;
-            var top;
-            var width = 10;
-            switch (pos) {
-                case ControlPositions.tl:
-                    left = bbox.x - width;
-                    top = bbox.y - width;
-                    break;
-                case ControlPositions.tr:
-                    left = bbox.x + bbox.width;
-                    top = bbox.y;
-                    break;
-                case ControlPositions.bl:
-                    left = bbox.x;
-                    top = bbox.y + bbox.height;
-                    break;
-                case ControlPositions.br:
-                    left = bbox.x + bbox.width;
-                    top = bbox.y + bbox.height;
-                    break;
-                case ControlPositions.mt:
-                    left = bbox.x + bbox.width / 2;
-                    top = bbox.y - width * 2 - this.getControllableOptions().getRotateControlOffset();
-                    break;
-            }
-            control.setPosition(left, top);
+            pos = controls[i].position;
+            control = controls[i].control;
             control.setWidth(this.getControllableOptions().getControlWidth());
             control.setHeight(this.getControllableOptions().getControlHeight());
+            x = 0;
+            y = 0;
+            rotationControlOffset = this.getControllableOptions().getRotateControlOffset();
+            middle = bbox.x + bbox.width / 2 - (control.element.type === 'circle' ? 0 : (control.getWidth() / 2));
+            bottom = bbox.y + bbox.height + ((control.type === 'RotationControl') ? rotationControlOffset : 0);
+            top = bbox.y - ((control.type === 'RotationControl') ? rotationControlOffset : 0);
+            left = bbox.x;
+            right = bbox.x + bbox.width;
+            switch (pos) {
+                case ControlPositions.tl:
+                    x = left;
+                    y = top;
+                    break;
+                case ControlPositions.tr:
+                    x = right;
+                    y = top;
+                    break;
+                case ControlPositions.bl:
+                    x = left;
+                    y = bottom;
+                    break;
+                case ControlPositions.br:
+                    x = right;
+                    y = bottom;
+                    break;
+                case ControlPositions.mt:
+                    x = middle;
+                    y = top;
+                    break;
+                case ControlPositions.mb:
+                    x = middle;
+                    y = bottom;
+                    break;
+            }
+            control.setPosition(x, y);
         }
         this.options.onselect(this.group);
     };

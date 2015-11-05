@@ -11,11 +11,13 @@ var ControlPositions = {
     tr: 'tr',
     bl: 'bl',
     br: 'br',
-    mt: 'mt'
+    mt: 'mt',
+    mb: 'mb'
 };
 var Control = (function () {
     function Control(container, el, handlerEl) {
         this.container = container;
+        this.type = 'Control';
         this.visibility = false;
         this.element = handlerEl || this.getDefaultElement(el);
         this.linkedTo = el;
@@ -48,10 +50,20 @@ var Control = (function () {
         event.preventDefault();
         // console.log('on drag down', this);
     };
+    /**
+     * set position relative to parent
+     * @param x
+     * @param y
+     */
     Control.prototype.setPosition = function (x, y) {
         switch (this.element.type) {
             case 'circle':
                 this.element.attr({ cx: x, cy: y });
+                break;
+            case 'g':
+                var localmatrix = this.element.transform().localMatrix, invert = localmatrix.invert(), absX = x / localmatrix.a, absY = y / localmatrix.d;
+                //cancel the previous translation then do the new one
+                this.element.attr({ transform: localmatrix.translate(invert.e, invert.f).translate(absX, absY) });
                 break;
             default:
                 this.element.attr({ x: x, y: y });
@@ -63,6 +75,12 @@ var Control = (function () {
             case 'circle':
                 this.element.attr({ r: w / 2 });
                 break;
+            case 'g':
+                var bbox = this.element.getBBox(), width = bbox.width, scaleX = this.element.transform().localMatrix.a, absWidth = width / scaleX, newScaleX = w / absWidth;
+                this.element.attr({
+                    transform: this.element.transform().localMatrix.scale(1 / scaleX, 1).scale(newScaleX, 1)
+                });
+                break;
             default:
                 this.element.attr({ width: w });
                 break;
@@ -73,10 +91,22 @@ var Control = (function () {
             case 'circle':
                 this.element.attr({ r: h / 2 });
                 break;
+            case 'g':
+                var bbox = this.element.getBBox(), height = bbox.height, scaleY = this.element.transform().localMatrix.d, absHeight = height / scaleY, newScaleY = h / absHeight;
+                this.element.attr({
+                    transform: this.element.transform().localMatrix.scale(1, 1 / scaleY).scale(1, newScaleY)
+                });
+                break;
             default:
                 this.element.attr({ height: h });
                 break;
         }
+    };
+    Control.prototype.getWidth = function () {
+        return this.element.getBBox().width;
+    };
+    Control.prototype.getHeight = function () {
+        return this.element.getBBox().height;
     };
     Control.prototype.initialize = function () {
         //do nothing by default
@@ -100,6 +130,7 @@ var ScaleControl = (function (_super) {
     __extends(ScaleControl, _super);
     function ScaleControl() {
         _super.apply(this, arguments);
+        this.type = 'ScaleControl';
     }
     ScaleControl.prototype.getDefaultElement = function (el) {
         var item = el.rect(0, 0, 20, 20);
@@ -141,6 +172,7 @@ var RotationControl = (function (_super) {
     __extends(RotationControl, _super);
     function RotationControl() {
         _super.apply(this, arguments);
+        this.type = 'RotationControl';
     }
     RotationControl.prototype.getDefaultElement = function (el) {
         var item = el.circle(0, 0, 10);
@@ -160,7 +192,7 @@ var RotationControl = (function (_super) {
      */
     RotationControl.prototype.onDragmove = function (dx, dy, x, y, event) {
         var el = this.rotatableEl;
-        var scale = Math.round(this.container.getControllableOptions().getZoomRatio());
+        var scale = Math.round(this.container.getControllableOptions().getZoomRatio() * 100) / 100;
         var scalableBBox = this.container.scalableGroup.group.getBBox();
         var p1 = this.element.getBBox();
         var p2 = { x: p1.x + dx * scale, y: p1.y + dy * scale };
@@ -345,45 +377,57 @@ var Container = (function (_super) {
         this.options.onunselect(this.group);
         this.controlsGroup.setControlsVisibility(false);
     };
+    /**
+     * Sets the controls position and size
+     */
     Container.prototype.placeControls = function () {
-        var container = this;
-        var controls = this.controlsGroup.controls;
-        //var baseVal =  (this.node.transform.baseVal.length) ? this.node.transform.baseVal.getItem(0) : null;
-        var bbox = this.scalableGroup.group.getBBox();
+        var x, y, rotationControlOffset, middle, bottom, top, left, right, pos, control, container, controls, border, bbox;
+        container = this;
+        controls = this.controlsGroup.controls;
+        bbox = this.scalableGroup.group.getBBox();
         container.controlsGroup.setControlsVisibility(true);
-        var border = container.controlsGroup.group.select('.controlsBorder');
+        border = container.controlsGroup.group.select('.controlsBorder');
         border.attr({ x: bbox.x, y: bbox.y, width: bbox.width, height: bbox.height });
         for (var i = 0; i < controls.length; i++) {
-            var pos = controls[i].position;
-            var control = controls[i].control;
-            var left;
-            var top;
-            var width = 10;
-            switch (pos) {
-                case ControlPositions.tl:
-                    left = bbox.x - width;
-                    top = bbox.y - width;
-                    break;
-                case ControlPositions.tr:
-                    left = bbox.x + bbox.width;
-                    top = bbox.y;
-                    break;
-                case ControlPositions.bl:
-                    left = bbox.x;
-                    top = bbox.y + bbox.height;
-                    break;
-                case ControlPositions.br:
-                    left = bbox.x + bbox.width;
-                    top = bbox.y + bbox.height;
-                    break;
-                case ControlPositions.mt:
-                    left = bbox.x + bbox.width / 2;
-                    top = bbox.y - width * 2 - this.getControllableOptions().getRotateControlOffset();
-                    break;
-            }
-            control.setPosition(left, top);
+            pos = controls[i].position;
+            control = controls[i].control;
             control.setWidth(this.getControllableOptions().getControlWidth());
             control.setHeight(this.getControllableOptions().getControlHeight());
+            x = 0;
+            y = 0;
+            rotationControlOffset = this.getControllableOptions().getRotateControlOffset();
+            middle = bbox.x + bbox.width / 2 - (control.element.type === 'circle' ? 0 : (control.getWidth() / 2));
+            bottom = bbox.y + bbox.height + ((control.type === 'RotationControl') ? rotationControlOffset : 0);
+            top = bbox.y - ((control.type === 'RotationControl') ? rotationControlOffset : 0);
+            left = bbox.x;
+            right = bbox.x + bbox.width;
+            switch (pos) {
+                case ControlPositions.tl:
+                    x = left;
+                    y = top;
+                    break;
+                case ControlPositions.tr:
+                    x = right;
+                    y = top;
+                    break;
+                case ControlPositions.bl:
+                    x = left;
+                    y = bottom;
+                    break;
+                case ControlPositions.br:
+                    x = right;
+                    y = bottom;
+                    break;
+                case ControlPositions.mt:
+                    x = middle;
+                    y = top;
+                    break;
+                case ControlPositions.mb:
+                    x = middle;
+                    y = bottom;
+                    break;
+            }
+            control.setPosition(x, y);
         }
         this.options.onselect(this.group);
     };
@@ -445,20 +489,28 @@ Snap.plugin(function (Snap, Element, Paper, global) {
             options.onunselect = options.onunselect || function () { };
             options.onchange = options.onchange || function () { };
             options.ondragstart = options.ondragstart || function () { };
-            options.getZoomRatio = options.getZoomRatio || function () { console.log('default ratio'); return 1; };
+            options.onzoom = options.onzoom || function () {
+                //TODO: call placeControls() for each container
+            };
+            options.getZoomRatio = options.getZoomRatio || function () { return 1; };
             options.getRotateControl = options.getRotateControl || function () {
                 var item = self.paper.circle(0, 0, 10);
                 item.toggleClass('rotationControl', true);
                 return item;
             };
+            options.getScaleControl = options.getScaleControl || function () {
+                var item = self.paper.rect(0, 0, 10);
+                item.toggleClass('scaleControl', true);
+                return item;
+            };
             options.getControlWidth = options.getControlWidth || function () {
-                return 50 / options.getZoomRatio() / 2;
+                return 20 / (options.getZoomRatio());
             };
             options.getControlHeight = options.getControlHeight || function () {
-                return 50 / options.getZoomRatio() / 2;
+                return 20 / (options.getZoomRatio());
             };
             options.getRotateControlOffset = options.getRotateControlOffset || function () {
-                return 50 / options.getZoomRatio() / 2;
+                return 20 / options.getZoomRatio();
             };
             if (this.hasClass('elementContainer')) {
                 var scalable = new ScalableGroup(options, this.paper, Snap(this.node.children[0])), controls = new ControlsGroup(options, this.paper, Snap(this.node.children[1]));
@@ -477,7 +529,7 @@ Snap.plugin(function (Snap, Element, Paper, global) {
                 container.setControlsGroup(controls);
                 container.setOriginalGroup(this);
             }
-            controls.addControl(ControlPositions.br, new ScaleControl(container, container.group));
+            controls.addControl(ControlPositions.br, new ScaleControl(container, container.group, options.getScaleControl(controls.group)));
             controls.addControl(ControlPositions.mt, new RotationControl(container, container.group, options.getRotateControl(controls.group)));
             container.group.data('containerObject', container);
             controls.group.data('containerObject', container);
