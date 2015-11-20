@@ -60,9 +60,10 @@ var Control = (function () {
                 this.element.attr({ cx: x, cy: y });
                 break;
             case 'g':
-                var localmatrix = this.element.transform().localMatrix, invert = localmatrix.invert(), absX = x / (localmatrix.a || 1), absY = y / (localmatrix.d || 1), invertX = invert.e || 0, invertY = invert.f || 0;
+                var localmatrix = this.element.transform().localMatrix, invert = localmatrix.invert(), absX = x / (localmatrix.a || 1), absY = y / (localmatrix.d || 1);
+                console.log(invert, absX, absY);
                 //cancel the previous translation then do the new one
-                this.element.attr({ transform: localmatrix.translate(invertX, invertY).translate(absX, absY) });
+                this.element.attr({ transform: localmatrix.translate(invert.e, invert.f).translate(absX, absY) });
                 break;
             default:
                 this.element.attr({ x: x, y: y });
@@ -75,7 +76,7 @@ var Control = (function () {
                 this.element.attr({ r: w / 2 });
                 break;
             case 'g':
-                var bbox = this.element.getBBox(), width = bbox.width, scaleX = (this.element.transform().localMatrix.a || 1), absWidth = width / scaleX, newScaleX = w / (absWidth || 1);
+                var bbox = this.element.getBBox(), width = bbox.width, scaleX = (this.element.transform().localMatrix.a || 1), absWidth = width / scaleX, newScaleX = w / absWidth;
                 this.element.attr({
                     transform: this.element.transform().localMatrix.scale(1 / scaleX, 1).scale(newScaleX, 1)
                 });
@@ -91,7 +92,7 @@ var Control = (function () {
                 this.element.attr({ r: h / 2 });
                 break;
             case 'g':
-                var bbox = this.element.getBBox(), height = bbox.height, scaleY = (this.element.transform().localMatrix.d || 1), absHeight = height / scaleY, newScaleY = h / (absHeight || 1);
+                var bbox = this.element.getBBox(), height = bbox.height, scaleY = this.element.transform().localMatrix.d, absHeight = height / scaleY, newScaleY = h / absHeight;
                 this.element.attr({
                     transform: this.element.transform().localMatrix.scale(1, 1 / scaleY).scale(1, newScaleY)
                 });

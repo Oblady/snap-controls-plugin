@@ -55,11 +55,12 @@ class Control implements IControl {
             case 'g':
                 var localmatrix = this.element.transform().localMatrix,
                     invert = localmatrix.invert(),
-                    absX = x/localmatrix.a,
-                    absY = y/localmatrix.d;
-
+                    absX = x/(localmatrix.a || 1),
+                    absY = y/(localmatrix.d || 1),
+                    invertX = invert.e || 0,
+                    invertY = invert.f || 0;
                 //cancel the previous translation then do the new one
-                this.element.attr({transform: localmatrix.translate(invert.e, invert.f).translate(absX, absY)});
+                this.element.attr({transform: localmatrix.translate(invertX, invertY).translate(absX, absY)});
             break;
 
 			default:
@@ -75,8 +76,9 @@ class Control implements IControl {
                 break;
             case 'g':
                 var bbox = this.element.getBBox(), width = bbox.width,
-                    scaleX = this.element.transform().localMatrix.a,
-                    absWidth = width / scaleX, newScaleX = w/absWidth;
+                    scaleX = (this.element.transform().localMatrix.a || 1),
+                    absWidth = width / scaleX,
+                    newScaleX = w/(absWidth || 1);
                 this.element.attr({
                     transform: this.element.transform().localMatrix.scale(1/scaleX, 1).scale(newScaleX,1)
                 });
@@ -96,8 +98,9 @@ class Control implements IControl {
 
             case 'g':
                 var bbox = this.element.getBBox(), height = bbox.height,
-                    scaleY = this.element.transform().localMatrix.d,
-                    absHeight = height / scaleY, newScaleY = h/absHeight;
+                    scaleY = (this.element.transform().localMatrix.d || 1),
+                    absHeight = height / scaleY,
+                    newScaleY = h/(absHeight || 1);
                 this.element.attr({
                     transform: this.element.transform().localMatrix.scale(1, 1/scaleY).scale(1, newScaleY)
                 });
