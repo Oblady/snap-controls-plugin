@@ -444,7 +444,7 @@ var Container = (function (_super) {
  */
 Snap.plugin(function (Snap, Element, Paper, global) {
     Element.prototype.globalToLocal = function (globalPoint) {
-        var globalToLocal = this.node.getTransformToElement(this.paper.node).inverse();
+        var globalToLocal = this.paper.node.getScreenCTM().inverse().multiply(this.getScreenCTM()).inverse();
         globalToLocal.e = globalToLocal.f = 0;
         return globalPoint.matrixTransform(globalToLocal);
     };
