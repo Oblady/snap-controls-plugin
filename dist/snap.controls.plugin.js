@@ -448,6 +448,10 @@ var Container = (function (_super) {
  */
 Snap.plugin(function (Snap, Element, Paper, global) {
     Element.prototype.globalToLocal = function (globalPoint) {
+        /**
+         * @see https://groups.google.com/forum/#!topic/jointjs/qIKIiJCEClI and https://www.chromestatus.com/feature/5736166087196672
+         * Act as a polyfill for SVGGraphicsElement.getTransformToElement as chrome deprecated it in v48.
+         */
         var globalToLocal = this.paper.node.getScreenCTM().inverse().multiply(this.getScreenCTM()).inverse();
         globalToLocal.e = globalToLocal.f = 0;
         return globalPoint.matrixTransform(globalToLocal);
