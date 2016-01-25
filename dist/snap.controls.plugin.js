@@ -147,6 +147,7 @@ var ScaleControl = (function (_super) {
      * @param y
      */
     ScaleControl.prototype.onDragmove = function (dx, dy, x, y, event) {
+        event.preventDefault();
         var scale = 1 + (dx + dy) / 100;
         if (scale < 0.2)
             scale = 0.2;
@@ -161,6 +162,7 @@ var ScaleControl = (function (_super) {
         this.container.getControllableOptions().onchange(null, null, null, null, scale);
     };
     ScaleControl.prototype.onDragstart = function (x, y, event) {
+        event.preventDefault();
         this.scalableEl.data('origTransform', this.scalableEl.transform());
         _super.prototype.onDragstart.call(this, x, y, event);
         this.container.getControllableOptions().ondragstart();
@@ -190,6 +192,7 @@ var RotationControl = (function (_super) {
      * @param event
      */
     RotationControl.prototype.onDragmove = function (dx, dy, x, y, event) {
+        event.preventDefault();
         var el = this.rotatableEl;
         var scale = Math.round(this.container.getControllableOptions().getZoomRatio() * 100) / 100;
         var scalableBBox = this.container.scalableGroup.group.getBBox();
@@ -207,6 +210,7 @@ var RotationControl = (function (_super) {
         this.container.getControllableOptions().onchange(null, null, null, angle, null);
     };
     RotationControl.prototype.onDragstart = function (x, y, event) {
+        event.preventDefault();
         var el = this.rotatableEl;
         el.data('origTransform', el.transform());
         this.container.getControllableOptions().ondragstart();

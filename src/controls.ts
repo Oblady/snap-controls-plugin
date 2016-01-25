@@ -185,6 +185,7 @@ class ScaleControl extends Control {
      * @param y
      */
     onDragmove(dx, dy, x, y, event) {
+        event.preventDefault();
 		var scale = 1 + (dx+dy) / 100;
 		if(scale < 0.2) scale = 0.2;
 		if(scale > 10) scale = 10;
@@ -199,6 +200,7 @@ class ScaleControl extends Control {
     }
 
     onDragstart(x, y, event) {
+        event.preventDefault();
         this.scalableEl.data('origTransform', this.scalableEl.transform());
         super.onDragstart(x, y, event);
         this.container.getControllableOptions().ondragstart();
@@ -231,6 +233,7 @@ class RotationControl extends Control {
      * @param event
      */
     onDragmove(dx:number, dy:number, x:number, y:number, event) {
+        event.preventDefault();
 		var el = this.rotatableEl;
         var scale = Math.round(this.container.getControllableOptions().getZoomRatio()*100)/100;
         var scalableBBox = this.container.scalableGroup.group.getBBox();
@@ -249,6 +252,7 @@ class RotationControl extends Control {
     }
 
     onDragstart(x, y, event) {
+        event.preventDefault();
 		var el = this.rotatableEl;
         el.data('origTransform', el.transform());
         this.container.getControllableOptions().ondragstart();
