@@ -271,6 +271,8 @@ var ScalableGroup = (function (_super) {
         this.options = options;
         var self = this;
         var altMoveDrag = function (xxdx, xxdy, ax, ay, ev) {
+            ax = ev.clientX;
+            ay = ev.clientY;
             var container = this.parent();
             if (!container.paper) {
                 return;
@@ -290,6 +292,8 @@ var ScalableGroup = (function (_super) {
             self.getControllableOptions().onchange(self.group, initialMtx, mtx, null, null);
         };
         var altStartDrag = function (x, y, ev) {
+            x = ev.clientX;
+            y = ev.clientY;
             var container = this.parent();
             container.data('ibb', container.getBBox());
             container.data('op', container.getCursorPoint(x, y));

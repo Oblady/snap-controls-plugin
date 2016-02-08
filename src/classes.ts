@@ -60,6 +60,9 @@ class ScalableGroup extends GroupPrototype
         var self: ScalableGroup = this;
         var altMoveDrag = function(xxdx: number, xxdy: number, ax: number, ay: number, ev) {
 
+            ax = ev.clientX;
+            ay = ev.clientY;
+
             var container: Snap.Element = this.parent();
 
             if (!container.paper) {
@@ -88,6 +91,8 @@ class ScalableGroup extends GroupPrototype
         };
 
         var altStartDrag = function(x, y, ev) {
+            x = ev.clientX;
+            y = ev.clientY;
             var container: Snap.Element = this.parent();
             container.data('ibb', container.getBBox());
             container.data('op', container.getCursorPoint(x, y));
