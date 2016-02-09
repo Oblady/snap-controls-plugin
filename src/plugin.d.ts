@@ -24,6 +24,8 @@ declare module Snap {
     }
 
     export interface Element {
+        //setWidth(w:number):void;
+        //setHeight(h:number):void;
         groups: Element;
         paper: Paper;
         setOCoords(angle:number, currentWidth?: number, currentHeight?: number): Element;

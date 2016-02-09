@@ -167,14 +167,22 @@ class Control implements IControl {
 class ScaleControl extends Control {
     type: string = 'ScaleControl';
 	scalableEl: Snap.Element;
+    isHomothetic: boolean;
     getDefaultElement(el:Snap.Element): Snap.Element {
         var item = el.rect(0, 0, 20, 20);
         item.toggleClass('scaleControl', true);
         return item;
     }
 
+    constructor (protected container:Container,  el:Snap.Element, isHomothetic: boolean, handlerEl?: Snap.Element) {
+        super(container, el, handlerEl);
+        this.isHomothetic = isHomothetic;
+    }
+
 	initialize () {
 		this.scalableEl = this.container.scalableGroup.group;
+        this.scalableEl.data('ow', this.scalableEl.getBBox().width); //original width
+        this.scalableEl.data('oh', this.scalableEl.getBBox().height); //original height
 	}
 
     /**
@@ -186,17 +194,49 @@ class ScaleControl extends Control {
      */
     onDragmove(dx, dy, x, y, event) {
         event.preventDefault();
-		var scale = 1 + (dx+dy) / 100;
-		if(scale < 0.2) scale = 0.2;
-		if(scale > 10) scale = 10;
-		var el = this.scalableEl;
-        el.attr({
-                transform: el.data('origTransform').local + (el.data('origTransform').local ? "S" : "s") + scale
-        });
+        var el = this.scalableEl;
+        if(this.isHomothetic) {
+            var newScale = 1 + (dx+dy) / 100;
+            if(newScale < 0.2) newScale = 0.2;
+            if(newScale > 10) newScale = 10;
+            var scale = {x: newScale, y: newScale};
+            el.attr({
+                transform: el.data('origTransform').local + (el.data('origTransform').local ? "S" : "s") + newScale
+            });
+        }
+		else {
+            var ow = el.data('ow'), //original width
+                oh = el.data('oh'); //original height
+            var scale = ScaleControl.getNewScale(ow, oh, dx, dy),
+                scaleX: number = scale.x,
+                scaleY: number = scale.y;
+            if(scaleX < 0.2) scaleX = 0.2;
+            if(scaleX > 10) scaleX = 10;
+            if(scaleY < 0.2) scaleY = 0.2;
+            if(scaleY > 10) scaleY = 10;
+            el.attr({
+                transform: el.data('origTransform').local + "S" + scaleX + ',' + scaleY
+            });
+        }
 
 		this.container.placeControls();
         super.onDragmove(dx, dy, x, y, event);
         this.container.getControllableOptions().onchange(null, null, null, null, scale);
+    }
+
+    /**
+     * Calculates a new scale when given original dimensions of the element and the distance of the pointer from the control
+     * @param w
+     * @param h
+     * @param dx
+     * @param dy
+     * @returns {{x: number, y: number}}
+     */
+    static getNewScale(w:number, h:number, dx:number, dy:number) : {x: number; y: number} {
+        return {
+            x: (w + dx) / w,
+            y: (h + dy) / h
+        }
     }
 
     onDragstart(x, y, event) {

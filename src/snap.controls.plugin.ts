@@ -10,6 +10,49 @@
  */
 Snap.plugin(function (Snap, Element: Snap.Element, Paper: Snap.Paper, global) {
 
+    //Element.prototype.setWidth = function(w:number) {
+    //    switch(this.type) {
+    //        case 'circle':
+    //            this.attr({r:w/2});
+    //            break;
+    //        case 'g':
+    //            var bbox = this.getBBox(), width = bbox.width,
+    //                scaleX = (this.transform().localMatrix.a || 1),
+    //                absWidth = width / scaleX,
+    //                newScaleX = w/(absWidth || 1);
+    //            this.attr({
+    //                transform: this.transform().localMatrix.scale(1/scaleX, 1).scale(newScaleX,1)
+    //            });
+    //            break;
+    //
+    //        default:
+    //            this.attr({width:w});
+    //            break;
+    //    }
+    //};
+    //
+    //Element.prototype.setHeight = function(h:number) {
+    //    switch(this.type) {
+    //        case 'circle':
+    //            this.attr({r:h/2});
+    //            break;
+    //
+    //        case 'g':
+    //            var bbox = this.getBBox(), height = bbox.height,
+    //                scaleY = (this.transform().localMatrix.d || 1),
+    //                absHeight = height / scaleY,
+    //                newScaleY = h/(absHeight || 1);
+    //            this.attr({
+    //                transform: this.transform().localMatrix.scale(1, 1/scaleY).scale(1, newScaleY)
+    //            });
+    //            break;
+    //
+    //        default:
+    //            this.attr({height:h});
+    //            break;
+    //    }
+    //};
+
     Element.prototype.globalToLocal = function (globalPoint: SVGPoint): SVGPoint {
 
         /**
@@ -86,6 +129,9 @@ Snap.plugin(function (Snap, Element: Snap.Element, Paper: Snap.Paper, global) {
         options.getRotateControlOffset = options.getRotateControlOffset || function() {
                 return options.getControlHeight();
             };
+        options.getIsHomotheticScaling = options.getIsHomotheticScaling || function() {
+                return true;
+            };
         if(this.hasClass('elementContainer')) {
             var scalable = new ScalableGroup(options, this.paper, Snap(this.node.children[0])),
                 controls = new ControlsGroup(options, this.paper, Snap(this.node.children[1]));
@@ -107,7 +153,7 @@ Snap.plugin(function (Snap, Element: Snap.Element, Paper: Snap.Paper, global) {
 
         }
 
-		controls.addControl(ControlPositions.br, new ScaleControl(container, container.group, options.getScaleControl()));
+		controls.addControl(ControlPositions.br, new ScaleControl(container, container.group, options.getIsHomotheticScaling(), options.getScaleControl()));
 		controls.addControl(ControlPositions.mt, new RotationControl(container, container.group, options.getRotateControl()));
         container.group.data('containerObject', container);
         controls.group.data('containerObject', container);

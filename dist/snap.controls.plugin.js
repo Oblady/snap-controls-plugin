@@ -127,9 +127,11 @@ var Control = (function () {
 })();
 var ScaleControl = (function (_super) {
     __extends(ScaleControl, _super);
-    function ScaleControl() {
-        _super.apply(this, arguments);
+    function ScaleControl(container, el, isHomothetic, handlerEl) {
+        _super.call(this, container, el, handlerEl);
+        this.container = container;
         this.type = 'ScaleControl';
+        this.isHomothetic = isHomothetic;
     }
     ScaleControl.prototype.getDefaultElement = function (el) {
         var item = el.rect(0, 0, 20, 20);
@@ -138,6 +140,8 @@ var ScaleControl = (function (_super) {
     };
     ScaleControl.prototype.initialize = function () {
         this.scalableEl = this.container.scalableGroup.group;
+        this.scalableEl.data('ow', this.scalableEl.getBBox().width); //original width
+        this.scalableEl.data('oh', this.scalableEl.getBBox().height); //original height
     };
     /**
      *
@@ -148,18 +152,51 @@ var ScaleControl = (function (_super) {
      */
     ScaleControl.prototype.onDragmove = function (dx, dy, x, y, event) {
         event.preventDefault();
-        var scale = 1 + (dx + dy) / 100;
-        if (scale < 0.2)
-            scale = 0.2;
-        if (scale > 10)
-            scale = 10;
         var el = this.scalableEl;
-        el.attr({
-            transform: el.data('origTransform').local + (el.data('origTransform').local ? "S" : "s") + scale
-        });
+        if (this.isHomothetic) {
+            var newScale = 1 + (dx + dy) / 100;
+            if (newScale < 0.2)
+                newScale = 0.2;
+            if (newScale > 10)
+                newScale = 10;
+            var scale = { x: newScale, y: newScale };
+            el.attr({
+                transform: el.data('origTransform').local + (el.data('origTransform').local ? "S" : "s") + newScale
+            });
+        }
+        else {
+            var ow = el.data('ow'), //original width
+            oh = el.data('oh'); //original height
+            var scale = ScaleControl.getNewScale(ow, oh, dx, dy), scaleX = scale.x, scaleY = scale.y;
+            if (scaleX < 0.2)
+                scaleX = 0.2;
+            if (scaleX > 10)
+                scaleX = 10;
+            if (scaleY < 0.2)
+                scaleY = 0.2;
+            if (scaleY > 10)
+                scaleY = 10;
+            el.attr({
+                transform: el.data('origTransform').local + "S" + scaleX + ',' + scaleY
+            });
+        }
         this.container.placeControls();
         _super.prototype.onDragmove.call(this, dx, dy, x, y, event);
         this.container.getControllableOptions().onchange(null, null, null, null, scale);
+    };
+    /**
+     * Calculates a new scale when given original dimensions of the element and the distance of the pointer from the control
+     * @param w
+     * @param h
+     * @param dx
+     * @param dy
+     * @returns {{x: number, y: number}}
+     */
+    ScaleControl.getNewScale = function (w, h, dx, dy) {
+        return {
+            x: (w + dx) / w,
+            y: (h + dy) / h
+        };
     };
     ScaleControl.prototype.onDragstart = function (x, y, event) {
         event.preventDefault();
@@ -451,6 +488,48 @@ var Container = (function (_super) {
  * @author Oblady
  */
 Snap.plugin(function (Snap, Element, Paper, global) {
+    //Element.prototype.setWidth = function(w:number) {
+    //    switch(this.type) {
+    //        case 'circle':
+    //            this.attr({r:w/2});
+    //            break;
+    //        case 'g':
+    //            var bbox = this.getBBox(), width = bbox.width,
+    //                scaleX = (this.transform().localMatrix.a || 1),
+    //                absWidth = width / scaleX,
+    //                newScaleX = w/(absWidth || 1);
+    //            this.attr({
+    //                transform: this.transform().localMatrix.scale(1/scaleX, 1).scale(newScaleX,1)
+    //            });
+    //            break;
+    //
+    //        default:
+    //            this.attr({width:w});
+    //            break;
+    //    }
+    //};
+    //
+    //Element.prototype.setHeight = function(h:number) {
+    //    switch(this.type) {
+    //        case 'circle':
+    //            this.attr({r:h/2});
+    //            break;
+    //
+    //        case 'g':
+    //            var bbox = this.getBBox(), height = bbox.height,
+    //                scaleY = (this.transform().localMatrix.d || 1),
+    //                absHeight = height / scaleY,
+    //                newScaleY = h/(absHeight || 1);
+    //            this.attr({
+    //                transform: this.transform().localMatrix.scale(1, 1/scaleY).scale(1, newScaleY)
+    //            });
+    //            break;
+    //
+    //        default:
+    //            this.attr({height:h});
+    //            break;
+    //    }
+    //};
     Element.prototype.globalToLocal = function (globalPoint) {
         /**
          * @see https://groups.google.com/forum/#!topic/jointjs/qIKIiJCEClI and https://www.chromestatus.com/feature/5736166087196672
@@ -521,6 +600,9 @@ Snap.plugin(function (Snap, Element, Paper, global) {
             options.getRotateControlOffset = options.getRotateControlOffset || function () {
                 return options.getControlHeight();
             };
+            options.getIsHomotheticScaling = options.getIsHomotheticScaling || function () {
+                return true;
+            };
             if (this.hasClass('elementContainer')) {
                 var scalable = new ScalableGroup(options, this.paper, Snap(this.node.children[0])), controls = new ControlsGroup(options, this.paper, Snap(this.node.children[1]));
                 container = new Container(options, this.paper, this);
@@ -538,7 +620,7 @@ Snap.plugin(function (Snap, Element, Paper, global) {
                 container.setControlsGroup(controls);
                 container.setOriginalGroup(this);
             }
-            controls.addControl(ControlPositions.br, new ScaleControl(container, container.group, options.getScaleControl()));
+            controls.addControl(ControlPositions.br, new ScaleControl(container, container.group, options.getIsHomotheticScaling(), options.getScaleControl()));
             controls.addControl(ControlPositions.mt, new RotationControl(container, container.group, options.getRotateControl()));
             container.group.data('containerObject', container);
             controls.group.data('containerObject', container);

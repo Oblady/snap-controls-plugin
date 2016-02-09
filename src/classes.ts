@@ -7,7 +7,7 @@ import Matrix = Snap.Matrix;
 interface ControllableOptions {
     onselect?(el: Snap.Element):void;
     onunselect?(el: Snap.Element):void;
-    onchange?(el: Snap.Element, initialMtx: Snap.Matrix, mtx: Snap.Matrix, angle: number, scale: number):void;
+    onchange?(el: Snap.Element, initialMtx: Snap.Matrix, mtx: Snap.Matrix, angle: number, scale: Object):void;
     ondragstart?():void;
     onzoom?():void;
     getZoomRatio?(): number;
@@ -16,6 +16,7 @@ interface ControllableOptions {
     getControlWidth?() :number;
     getControlHeight?() :number;
     getRotateControlOffset?() :number;
+    getIsHomotheticScaling?(): boolean;
 }
 
 class GroupPrototype {
