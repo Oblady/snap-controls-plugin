@@ -80,7 +80,9 @@ Snap.plugin(function (Snap, Element: Snap.Element, Paper: Snap.Paper, global) {
      */
     Element.prototype.drawControls = function() {
         var container: Container  = this.data('containerObject');
-		container.placeControls();
+        if(!!container) {
+            container.placeControls();
+        }
     };
 
     Element.prototype.hideControls = function() {
