@@ -1,10 +1,10 @@
-///<reference path="../typings/tsd.d.ts" />
-///<reference path="plugin.d.ts" />
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
+///<reference path="../typings/tsd.d.ts" />
+///<reference path="plugin.d.ts" />
 var ControlPositions = {
     tl: 'tl',
     tr: 'tr',
@@ -29,7 +29,6 @@ var Control = (function () {
         this.element.appendTo(this.linkedTo.select('.elementControls'));
         //this.linkedTo._controls[controlName] = this;
         this.element.drag(this.onDragmove, this.onDragstart, this.onDragend, this, this, this);
-        this.element.angle = 0;
         this.initialize();
     }
     Control.prototype.onDragstart = function (x, y, event) {
@@ -47,7 +46,6 @@ var Control = (function () {
      */
     Control.prototype.onDragmove = function (dx, dy, x, y, event) {
         event.preventDefault();
-        // console.log('on drag down', this);
     };
     /**
      * set position relative to parent
@@ -124,7 +122,7 @@ var Control = (function () {
         this.element.attr({ opacity: opacity });
     };
     return Control;
-})();
+}());
 var ScaleControl = (function (_super) {
     __extends(ScaleControl, _super);
     function ScaleControl(container, el, isHomothetic, handlerEl) {
@@ -205,7 +203,7 @@ var ScaleControl = (function (_super) {
         this.container.getControllableOptions().ondragstart();
     };
     return ScaleControl;
-})(Control);
+}(Control));
 var RotationControl = (function (_super) {
     __extends(RotationControl, _super);
     function RotationControl() {
@@ -218,7 +216,41 @@ var RotationControl = (function (_super) {
         return item;
     };
     RotationControl.prototype.initialize = function () {
+        var _this = this;
         this.rotatableEl = this.container.group;
+        this.onDragMove$ = new Rx.Subject();
+        var i = 0;
+        this.onDragMove$.throttle(75).subscribe(function (data) {
+            _this.doDragMove(data.dx, data.dy, data.x, data.y, data.event);
+        });
+    };
+    RotationControl.prototype.doDragMove = function (dx, dy, x, y, event) {
+        event.preventDefault();
+        var el = this.rotatableEl;
+        var scale = Math.round(this.container.getControllableOptions().getZoomRatio() * 100) / 100;
+        var x = (event.clientX);
+        var y = (event.clientY);
+        var correcAngle = this.correcAngle;
+        var scalableBBox = this.container.scalableGroup.group.getBBox();
+        var p1 = el.node.getBoundingClientRect();
+        p1.cx = p1.width / 2 + p1.left;
+        p1.cy = p1.height / 2 + p1.top;
+        //test si trop proche.
+        var AB = Math.abs(y - p1.cy);
+        var BC = Math.abs(x - p1.cx);
+        var hyp = Math.sqrt(AB * AB + BC * BC);
+        if (hyp < 20)
+            return;
+        var angle = (Math.atan2(y - p1.cy, x - p1.cx) * 180 / Math.PI) + correcAngle;
+        var r = (angle - (parseFloat(el.attr('angle'), 10) || 0));
+        var matrix = el.transform().localMatrix.rotate(r, scalableBBox.cx, scalableBBox.cy);
+        el.transform(matrix);
+        el.attr({
+            transform: matrix,
+            angle: angle
+        });
+        _super.prototype.onDragmove.call(this, dx, dy, x, y, event);
+        this.container.getControllableOptions().onchange(null, null, null, angle, null);
     };
     /**
      *
@@ -229,46 +261,45 @@ var RotationControl = (function (_super) {
      * @param event
      */
     RotationControl.prototype.onDragmove = function (dx, dy, x, y, event) {
-        event.preventDefault();
-        var el = this.rotatableEl;
-        var scale = Math.round(this.container.getControllableOptions().getZoomRatio() * 100) / 100;
-        var scalableBBox = this.container.scalableGroup.group.getBBox();
-        var p1 = this.element.getBBox();
-        var p2 = { x: p1.x + dx * scale, y: p1.y + dy * scale };
-        var angle = Math.atan2(p2.y - p1.y, p2.x - p1.x) * 180 / Math.PI;
-        var rotate = 'rotate(' + angle + ' ' + scalableBBox.cx + ' ' + scalableBBox.cy + ')';
-        var matrix = el.data('origTransform').localMatrix.rotate(-el.attr('angle'), scalableBBox.cx, scalableBBox.cy);
-        matrix.rotate(angle, scalableBBox.cx, scalableBBox.cy);
-        el.attr({
-            transform: matrix,
-            angle: angle
-        });
-        _super.prototype.onDragmove.call(this, dx, dy, x, y, event);
-        this.container.getControllableOptions().onchange(null, null, null, angle, null);
+        this.onDragMove$.onNext({ dx: dx, dy: dy, x: x, y: y, event: event });
+        //this.doDragMove(dx, dy, x, y, event);
     };
     RotationControl.prototype.onDragstart = function (x, y, event) {
         event.preventDefault();
+        var controllerRect = this.element.node.getBoundingClientRect();
+        var controllerCenter = { cx: controllerRect.width / 2 + controllerRect.left, cy: controllerRect.height / 2 + controllerRect.top };
+        var x = (event.clientX);
+        var y = (event.clientY);
+        var el = this.rotatableEl;
+        var p1 = el.node.getBoundingClientRect();
+        p1.cx = p1.width / 2 + p1.left;
+        p1.cy = p1.height / 2 + p1.top;
+        var mouseAngle = (Math.atan2(y - p1.cy, x - p1.cx) * 180 / Math.PI);
+        var controllerAngle = (Math.atan2(controllerCenter.cy - p1.cy, controllerCenter.cx - p1.cx) * 180 / Math.PI);
+        var is90 = +90; //that is if the controller is centered above the element ton control. May break things if the controller is placed elsewhere… :-/
+        //Add a correction for prevent a little “jump” caused by the mouse event is not in the same place as the controller center
+        this.correcAngle = mouseAngle - controllerAngle + is90;
         var el = this.rotatableEl;
         el.data('origTransform', el.transform());
         this.container.getControllableOptions().ondragstart();
         _super.prototype.onDragstart.call(this, x, y, event);
     };
     return RotationControl;
-})(Control);
+}(Control));
 var DropControl = (function (_super) {
     __extends(DropControl, _super);
     function DropControl() {
         _super.apply(this, arguments);
     }
     return DropControl;
-})(Control);
+}(Control));
 var DragControl = (function (_super) {
     __extends(DragControl, _super);
     function DragControl() {
         _super.apply(this, arguments);
     }
     return DragControl;
-})(Control);
+}(Control));
 ///<reference path="../typings/tsd.d.ts" />
 ///<reference path="plugin.d.ts" />
 ///<reference path="controls.ts" />
@@ -294,7 +325,7 @@ var GroupPrototype = (function () {
         return this.options;
     };
     return GroupPrototype;
-})();
+}());
 ;
 /**
  *
@@ -339,7 +370,7 @@ var ScalableGroup = (function (_super) {
         this.group.drag(altMoveDrag, altStartDrag, function () { });
     }
     return ScalableGroup;
-})(GroupPrototype);
+}(GroupPrototype));
 /**
  *
  * @param paper
@@ -381,7 +412,7 @@ var ControlsGroup = (function (_super) {
         this.group.attr({ opacity: opacity });
     };
     return ControlsGroup;
-})(GroupPrototype);
+}(GroupPrototype));
 /**
  *
  * @param paper
@@ -477,7 +508,7 @@ var Container = (function (_super) {
         //initialize();
     };
     return Container;
-})(GroupPrototype);
+}(GroupPrototype));
 ///<reference path="../typings/tsd.d.ts" />
 ///<reference path="plugin.d.ts" />
 ///<reference path="controls.ts" />

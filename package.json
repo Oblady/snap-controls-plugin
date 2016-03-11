@@ -8,6 +8,7 @@
   },
   "dependencies": {},
   "devDependencies": {
+    "jasmine": "^2.4.1",
     "tsd": "^0.6.5",
     "typescript": "^1.6.2"
   },

@@ -22,8 +22,8 @@ var options = {
 
 var elements = [];
 var init = function()  {
-    elements.push(stage.rect(10,10, 300, 400, 5, 5));
-    elements.push(stage.circle(100,100, 100));
+//    elements.push(stage.rect(10,10, 300, 400, 5, 5));
+    elements.push(stage.circle(300,300, 70));
 
     for (var i=0; i<elements.length; i++) {
         elements[i].controllable(options);

@@ -38,7 +38,6 @@ class Control implements IControl {
      */
     onDragmove(dx, dy, x, y, event) {
         event.preventDefault();
-       // console.log('on drag down', this);
     }
 
     /**
@@ -157,8 +156,6 @@ class Control implements IControl {
         this.element.appendTo(this.linkedTo.select('.elementControls'));
         //this.linkedTo._controls[controlName] = this;
         this.element.drag(this.onDragmove, this.onDragstart, this.onDragend, this, this, this);
-        this.element.angle = 0;
-
 		this.initialize();
     }
 }
@@ -253,6 +250,8 @@ class RotationControl extends Control {
 
     type: string = 'RotationControl';
 	rotatableEl: Snap.Element;
+    onDragMove$: any;
+    correcAngle: number;
 
     getDefaultElement(el:Snap.Element): Snap.Element {
         var item = el.circle(0, 0, 10);
@@ -262,7 +261,50 @@ class RotationControl extends Control {
 
 	initialize () {
 		this.rotatableEl = this.container.group;
+
+        this.onDragMove$ = new Rx.Subject();
+
+        var i=0;
+        this.onDragMove$.throttle(75).subscribe((data) => {
+            this.doDragMove(data.dx, data.dy, data.x, data.y, data.event);
+        });
 	}
+
+    doDragMove (dx:number, dy:number, x:number, y:number, event) {
+
+        event.preventDefault();
+		var el = this.rotatableEl;
+        var scale = Math.round(this.container.getControllableOptions().getZoomRatio()*100)/100;
+
+        var x: number = (event.clientX);
+        var y: number = (event.clientY);
+
+        var correcAngle = this.correcAngle;
+        var scalableBBox = this.container.scalableGroup.group.getBBox();
+        var p1 = el.node.getBoundingClientRect();
+        p1.cx = p1.width/2 + p1.left;
+        p1.cy = p1.height/2 + p1.top;
+    
+        //test si trop proche.
+        var AB = Math.abs(y-p1.cy);
+        var BC = Math.abs(x-p1.cx);
+
+        var hyp = Math.sqrt(AB*AB + BC*BC);
+        if(hyp<20)return;
+
+        var angle: number = (Math.atan2(y - p1.cy, x - p1.cx)  * 180 / Math.PI) + correcAngle;
+
+        var r = (angle - ( parseFloat(el.attr('angle'), 10) || 0) );
+
+        var matrix = el.transform().localMatrix.rotate(r, scalableBBox.cx, scalableBBox.cy);
+        el.transform(matrix);
+        el.attr({
+                transform: matrix,
+                angle: angle
+        });
+        super.onDragmove(dx, dy, x, y, event);
+        this.container.getControllableOptions().onchange(null, null, null, angle, null);
+    }
 
     /**
      *
@@ -273,26 +315,33 @@ class RotationControl extends Control {
      * @param event
      */
     onDragmove(dx:number, dy:number, x:number, y:number, event) {
-        event.preventDefault();
-		var el = this.rotatableEl;
-        var scale = Math.round(this.container.getControllableOptions().getZoomRatio()*100)/100;
-        var scalableBBox = this.container.scalableGroup.group.getBBox();
-        var p1 = this.element.getBBox();
-        var p2 = {x: p1.x + dx * scale, y: p1.y + dy * scale};
-        var angle = Math.atan2(p2.y - p1.y, p2.x - p1.x) * 180 / Math.PI;
-        var rotate = 'rotate(' + angle + ' '  + scalableBBox.cx + ' ' + scalableBBox.cy +')';
-        var matrix = el.data('origTransform').localMatrix.rotate(-el.attr('angle'), scalableBBox.cx, scalableBBox.cy);
-        matrix.rotate(angle, scalableBBox.cx, scalableBBox.cy);
-        el.attr({
-                transform: matrix,
-                angle: angle
-        });
-        super.onDragmove(dx, dy, x, y, event);
-        this.container.getControllableOptions().onchange(null, null, null, angle, null);
+        this.onDragMove$.onNext({dx: dx, dy:dy, x:x, y:y, event:event});
+        //this.doDragMove(dx, dy, x, y, event);
     }
 
     onDragstart(x, y, event) {
         event.preventDefault();
+
+        var controllerRect = this.element.node.getBoundingClientRect();
+        var controllerCenter = {cx: controllerRect.width/2 + controllerRect.left, cy:controllerRect.height/2 + controllerRect.top); 
+
+        var x: number = (event.clientX);
+        var y: number = (event.clientY);
+
+
+		var el = this.rotatableEl;
+        var p1 = el.node.getBoundingClientRect();
+        p1.cx = p1.width/2 + p1.left;
+        p1.cy = p1.height/2 + p1.top;
+
+        var mouseAngle = (Math.atan2(y - p1.cy, x - p1.cx)  * 180 / Math.PI);
+        var controllerAngle = (Math.atan2(controllerCenter.cy - p1.cy, controllerCenter.cx - p1.cx)  * 180 / Math.PI);
+
+        var is90 = +90; //that is if the controller is centered above the element ton control. May break things if the controller is placed elsewhere… :-/
+        
+        //Add a correction for prevent a little “jump” caused by the mouse event is not in the same place as the controller center
+        this.correcAngle = mouseAngle - controllerAngle + is90 ;
+
 		var el = this.rotatableEl;
         el.data('origTransform', el.transform());
         this.container.getControllableOptions().ondragstart();
